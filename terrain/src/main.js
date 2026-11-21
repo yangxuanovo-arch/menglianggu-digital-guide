@@ -17,6 +17,10 @@ const depthKm = (35.72-35.49)*111.32;
 const tempVector = new THREE.Vector3();
 const origin = {lon:118.185,lat:35.605};
 const sourceDialog = $('sources-dialog');
+const leaderSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+leaderSvg.setAttribute('aria-hidden','true');
+leaderSvg.style.cssText='position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none';
+$('labels').prepend(leaderSvg);
 
 $('phase-buttons').innerHTML = phases.map((p,i)=>`<button data-phase="${i}" aria-label="${p.time} ${p.title}"><i></i><b>${p.date}</b><span>${p.title}</span></button>`).join('');
 $('phase-buttons').addEventListener('click', e=>{
@@ -79,7 +83,7 @@ function heightAt(lon,lat){
   return (heights[iy*N+ix]*(1-dx)+heights[iy*N+ix+1]*dx)*(1-dy)+(heights[(iy+1)*N+ix]*(1-dx)+heights[(iy+1)*N+ix+1]*dx)*dy;
 }
 function geo(lon,lat,lift=0){return new THREE.Vector3((lon-origin.lon)*111.32*Math.cos(origin.lat*Math.PI/180),heightAt(lon,lat)/1000*exaggeration+lift,(origin.lat-lat)*111.32);}
-function defaultCamera(){return mobile?new THREE.Vector3(34,40,48):new THREE.Vector3(22,24,29);}
+function defaultCamera(){return mobile?new THREE.Vector3(44,51,62):new THREE.Vector3(22,24,29);}
 function tweenCamera(to){cameraTween={from:camera.position.clone(),to,start:clock.getElapsedTime(),duration:reduced?.01:1.8};}
 
 function makeSurface(){
@@ -242,8 +246,8 @@ function render(now){
   const elapsed=clock.getElapsedTime();
   if(flying){
     flightTime+=delta;const angle=.65+flightTime*.12;
-    const radius=mobile?57:30;
-    const desired=new THREE.Vector3(Math.sin(angle)*radius,mobile?37:15+Math.sin(flightTime*.13)*4,Math.cos(angle)*radius);
+    const radius=mobile?72:30;
+    const desired=new THREE.Vector3(Math.sin(angle)*radius,mobile?49:15+Math.sin(flightTime*.13)*4,Math.cos(angle)*radius);
     camera.position.lerp(desired,reduced?.015:.035);controls.target.lerp(new THREE.Vector3(0,.7,-1),.02);
   }else if(cameraTween){
     const t=THREE.MathUtils.clamp((elapsed-cameraTween.start)/cameraTween.duration,0,1),ease=t*t*(3-2*t);
@@ -252,14 +256,40 @@ function render(now){
   controls.update();
   if(now-lastRender<(mobile?32:21))return;lastRender=now;
   for(const u of movingUnits){if(!reduced){u.marker.rotation.y=elapsed*.5;u.ring.material.opacity=.5+Math.sin(elapsed*2)*.25;}}
-  for(const l of labels){
-    tempVector.copy(l.position).project(camera);
-    const x=(tempVector.x*.5+.5)*$('scene').clientWidth,y=(-tempVector.y*.5+.5)*$('scene').clientHeight;
-    l.el.style.transform=`translate(${x}px,${y}px) translate(-50%,-100%)`;
-    l.el.style.visibility=tempVector.z>1||tempVector.z< -1?'hidden':'visible';
-  }
+  layoutLabels();
   const angle=controls.getAzimuthalAngle();document.querySelector('.north svg').style.transform=`rotate(${-angle*180/Math.PI}deg)`;
   renderer.render(scene,camera);
+}
+
+function layoutLabels(){
+  const w=$('scene').clientWidth,h=$('scene').clientHeight,placed=[];
+  // Prioritize the battlefield name, then units. Screen-space leader lines keep
+  // crowded end-phase markers readable without pretending they moved on the map.
+  const sorted=[...labels].sort((a,b)=>{
+    const rank=l=>l.el.classList.contains('primary')?0:l.unit?1:2;
+    return rank(a)-rank(b);
+  });
+  const projected=sorted.map(l=>{
+    tempVector.copy(l.position).project(camera);
+    return {l,x:(tempVector.x*.5+.5)*w,y:(-tempVector.y*.5+.5)*h,z:tempVector.z,bw:l.el.offsetWidth,bh:l.el.offsetHeight};
+  });
+  for(const {l,x,y,z,bw,bh} of projected){
+    if(!l.line){l.line=document.createElementNS(leaderSvg.namespaceURI,'line');l.line.setAttribute('stroke',l.unit?'#be956b':'#cbb278');l.line.setAttribute('stroke-opacity','.5');l.line.setAttribute('stroke-width','.6');leaderSvg.append(l.line);}
+    const visible=z>=-1&&z<=1&&!(terrainOnly&&l.unit);
+    l.el.style.visibility=visible?'visible':'hidden';l.line.style.display='none';
+    if(!visible)continue;
+    const left=mobile?10:315,right=w-(mobile?57:102),top=mobile?230:145,bottom=mobile?h-385:h-249;
+    let best=null;
+    for(const dy of [0,-28,28,-56,56,-84,84])for(const dx of [0,-45,45,-90,90,-135,135]){
+      const cx=THREE.MathUtils.clamp(x+dx,left+bw/2,right-bw/2),cy=THREE.MathUtils.clamp(y+dy,top+bh,bottom);
+      const box={left:cx-bw/2-5,right:cx+bw/2+5,top:cy-bh-4,bottom:cy+4};
+      let score=(cx-x)**2+(cy-y)**2;
+      for(const p of placed)score+=Math.max(0,Math.min(box.right,p.right)-Math.max(box.left,p.left))*Math.max(0,Math.min(box.bottom,p.bottom)-Math.max(box.top,p.top))*1000;
+      if(!best||score<best.score)best={cx,cy,box,score};
+    }
+    placed.push(best.box);l.el.style.transform=`translate(${best.cx}px,${best.cy}px) translate(-50%,-100%)`;
+    if(Math.hypot(best.cx-x,best.cy-y)>17){l.line.setAttribute('x1',x);l.line.setAttribute('y1',y);l.line.setAttribute('x2',best.cx);l.line.setAttribute('y2',best.cy-bh/2);l.line.style.display='';}
+  }
 }
 
 function fail(reason){
