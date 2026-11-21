@@ -32,11 +32,35 @@ G.points.forEach(function(p){
   m.on('click',function(){openPoint(p.id)});markers[p.id]=m;
 });
 function refreshIcons(){G.points.forEach(function(p){markers[p.id].setIcon(icon(p))})}
-function separateMarkers(){var used=[];G.points.forEach(function(p){var a=map.latLngToContainerPoint(P(p)),x=a.x,y=a.y,o=[0,0];for(var n=0;n<12;n++){o=[n?Math.ceil(n/2)*54*(n%2?1:-1):0,0];x=a.x+o[0];if(used.every(function(b){return Math.hypot(x-b[0],y-b[1])>=52}))break}markerOffsets[p.id]=o;used.push([x,y])});refreshIcons()}
-map.on('zoomend moveend',separateMarkers);
+function layoutMarkerAnchors(anchors,size,obstacles){
+  var used=[],steps=[];
+  for(var dx=-7;dx<=7;dx++)for(var dy=-7;dy<=7;dy++)steps.push([dx*46,dy*46]);
+  steps.sort(function(a,b){return a[0]*a[0]+a[1]*a[1]*1.15-b[0]*b[0]-b[1]*b[1]*1.15});
+  return anchors.map(function(a){
+    // Do not pull genuinely offscreen geographic points into a panned view.
+    if(a.x<0||a.x>size.x||a.y<0||a.y>size.y)return[0,0];
+    var chosen=[Math.max(22,Math.min(size.x-22,a.x)),Math.max(42,Math.min(size.y-10,a.y))];
+    for(var i=0;i<steps.length;i++){
+      var x=Math.max(22,Math.min(size.x-22,a.x+steps[i][0])),y=Math.max(42,Math.min(size.y-10,a.y+steps[i][1]));
+      if(used.some(function(b){return Math.hypot(x-b[0],y-b[1])<44}))continue;
+      if(obstacles.some(function(b){return x+20>b.left&&x-20<b.right&&y+4>b.top&&y-38<b.bottom}))continue;
+      chosen=[x,y];break;
+    }
+    used.push(chosen);return[chosen[0]-a.x,chosen[1]-a.y];
+  });
+}
+function separateMarkers(){
+  var rect=map.getContainer().getBoundingClientRect(),controls=Array.from(map.getContainer().querySelectorAll('.leaflet-control')),caption=document.querySelector('.map-frame>span');
+  if(caption)controls.push(caption);
+  var obstacles=controls.map(function(el){var b=el.getBoundingClientRect();return{left:b.left-rect.left-3,right:b.right-rect.left+3,top:b.top-rect.top-3,bottom:b.bottom-rect.top+3,width:b.width,height:b.height}}).filter(function(b){return b.width&&b.height});
+  var offsets=layoutMarkerAnchors(G.points.map(function(p){return map.latLngToContainerPoint(P(p))}),map.getSize(),obstacles);
+  G.points.forEach(function(p,i){markerOffsets[p.id]=offsets[i]});refreshIcons();
+}
+map.on('zoomend moveend resize',separateMarkers);
 var bounds=L.latLngBounds(G.points.map(P));
 var mountainBounds=L.latLngBounds(G.points.filter(function(p){return p.id!=='hall'}).map(P));
-function home(){map.fitBounds(mountainBounds,{padding:[60,60],maxZoom:16})}
+function mapPadding(){var size=map.getSize();return[Math.min(50,size.x*.12),Math.min(50,size.y*.18)]}
+function home(){map.fitBounds(mountainBounds,{padding:mapPadding(),maxZoom:16})}
 home();
 separateMarkers();
 var hallControl=L.control({position:'bottomleft'});
@@ -49,7 +73,7 @@ routeLayer.addTo(map);
 function updateMapLabels(){map.getContainer().classList.toggle('detail-labels',map.getZoom()>=17)}
 map.on('zoomend',updateMapLabels);updateMapLabels();
 var overview=L.control({position:'topright'});
-overview.onAdd=function(){var b=L.DomUtil.create('button','btn-ghost');b.type='button';b.textContent='全区概览';L.DomEvent.disableClickPropagation(b);b.onclick=function(){map.fitBounds(bounds,{padding:[50,50]})};return b};overview.addTo(map);
+overview.onAdd=function(){var b=L.DomUtil.create('button','btn-ghost');b.type='button';b.textContent='全区概览';L.DomEvent.disableClickPropagation(b);b.onclick=function(){map.fitBounds(bounds,{padding:mapPadding()})};return b};overview.addTo(map);
 /* context */
 var site=P(G.site);
 (G.context||[]).forEach(function(c){var ll=P(c);L.marker(ll,{icon:L.divIcon({className:'',html:'<span class="city">'+esc(c.name)+'</span>',iconSize:null})}).addTo(ctxLayer).bindPopup('<b>'+esc(c.name)+'</b><br>'+esc(c.desc));L.polyline([site,ll],{color:'#37474f',weight:2,dashArray:'4 6'}).addTo(ctxLayer)});
@@ -146,7 +170,7 @@ function routePanel(){
 }
 var touring=false,tourIdx=0,tourTimer=null;
 function stopTour(){var active=touring;touring=false;clearTimeout(tourTimer);tourTimer=null;if(active)stopSpeak(false)}
-function startTour(){closeAll();touring=true;tourIdx=0;speak('intro',G.narration.intro,function(){if(touring)tourNext()});map.flyToBounds(bounds,{padding:[50,50]})}
+function startTour(){closeAll();touring=true;tourIdx=0;speak('intro',G.narration.intro,function(){if(touring)tourNext()});map.flyToBounds(bounds,{padding:mapPadding()})}
 function tourNext(){if(!touring)return;if(tourIdx>=R.order.length){touring=false;closeSheet();home();speak('outro',G.narration.outro,function(){stopSpeak(false);stampPanel();setTab('stamps')});return}openPoint(R.order[tourIdx++],{autoplay:true})}
 
 function stampPanel(){
