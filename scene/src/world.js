@@ -34,11 +34,18 @@ export function terrainHeight(x, z) {
   let h = -(r - PLAZA_R) * 0.34;
   h += (fbm(x / 22, z / 22, 3) - 0.5) * 6 * smooth(PLAZA_R + 2, 45, r);
   h += (Math.pow(fbm(x / 170 + 7, z / 170 + 3, 5), 1.5) * 190 - 30) * smooth(140, 420, r);
-  if (z > STAIR_TOP_Z - 2 && Math.abs(x) < 7) {
-    const limit = Math.max(stairTop(z), STAIR_FOOT.y) - 0.4;
-    h = Math.min(h, limit + smooth(4, 7, Math.abs(x)) * 4);
+  h += (fbm(x / 38 + 2, z / 38 - 5, 4) - 0.5) * 26 * smooth(160, 420, r);
+  if (z > STAIR_TOP_Z - 2 && z < STAIR_FOOT.z + 22) {
+    const limit = Math.max(stairTop(z), STAIR_FOOT.y) - 0.35;
+    const half = z < STAIR_FOOT.z ? 3.3 : 6.1;
+    const s = Math.max(smooth(half, half + 7, Math.abs(x)), smooth(STAIR_FOOT.z + 10, STAIR_FOOT.z + 22, z));
+    h = limit + (h - limit) * s;
   }
   return h;
+}
+
+export function forestDensity(x, z) {
+  return smooth(0.38, 0.62, fbm(x / 34 + 11, z / 34 - 4, 3));
 }
 
 let loader, imageLoader;
@@ -74,26 +81,35 @@ function makeTerrain(mobile) {
   geo.rotateX(-Math.PI / 2);
   const p = geo.attributes.position;
   const colors = [];
-  const light = new THREE.Color('#f2ead8'), dark = new THREE.Color('#9c9472'), rock = new THREE.Color('#c9c1b4'), forest = new THREE.Color('#5d6b45'), c = new THREE.Color();
+  const light = new THREE.Color('#f2ead8'), dark = new THREE.Color('#8e9466'), rock = new THREE.Color('#c9c1b4'), forest = new THREE.Color('#4f5c3c'), floor = new THREE.Color('#59603f'), green = new THREE.Color('#d6e2b0'), c = new THREE.Color();
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), z = p.getZ(i), h = terrainHeight(x, z);
     p.setY(i, h);
-    c.copy(light).lerp(dark, fbm(x / 14, z / 14, 3));
+    c.copy(light).lerp(dark, 0.35 + 0.3 * fbm(x / 30, z / 30, 3));
     const steep = Math.abs(terrainHeight(x + 2, z) - h) + Math.abs(terrainHeight(x, z + 2) - h);
-    c.lerp(forest, smooth(60, 220, Math.hypot(x, z)) * (0.55 + 0.45 * fbm(x / 40 + 3, z / 40, 3)));
+    const rr = Math.hypot(x, z);
+    c.lerp(floor, forestDensity(x, z) * smooth(PLAZA_R + 2, PLAZA_R + 10, rr) * 0.85);
+    c.lerp(forest, smooth(90, 260, rr) * (0.55 + 0.45 * fbm(x / 40 + 3, z / 40, 3)));
     c.lerp(rock, Math.min(0.6, Math.max(0, steep - 1.2) * 0.3));
+    if (rr > PLAZA_R) c.multiply(green);
     colors.push(c.r, c.g, c.b);
   }
   geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geo.computeVertexNormals();
   const mat = pbr('ground', 150, { vertexColors: true, roughness: 1, normalScale: new THREE.Vector2(0.8, 0.8) });
+  mat.onBeforeCompile = (sh) => {
+    sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      vec2 uv2 = mat2(0.8, -0.6, 0.6, 0.8) * vMapUv * 0.161;
+      vec3 macro = texture2D(map, uv2).rgb;
+      diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * macro * 2.2, 0.45);`);
+  };
   return shadowed(new THREE.Mesh(geo, mat), false, true);
 }
 
 function fence(points, material, postH = 1.0) {
   const g = new THREE.Group();
-  const posts = new THREE.InstancedMesh(new THREE.BoxGeometry(0.26, postH, 0.26), material, points.length);
-  const rails = new THREE.InstancedMesh(new THREE.BoxGeometry(0.16, 0.12, 1), material, (points.length - 1) * 2);
+  const posts = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, postH, 0.2), material, points.length);
+  const rails = new THREE.InstancedMesh(new THREE.BoxGeometry(0.1, 0.09, 1), material, (points.length - 1) * 2);
   const d = new THREE.Object3D();
   points.forEach((pt, i) => {
     d.position.set(pt.x, pt.y + postH / 2, pt.z); d.rotation.set(0, 0, 0); d.scale.set(1, 1, 1); d.updateMatrix();
@@ -181,7 +197,9 @@ function makePlaza() {
   g.add(plaza);
 
   const stepMat = pbr('paving', [1.5, 0.5], { color: '#cbc4b8', roughness: 0.85 });
-  const steps = new THREE.InstancedMesh(new THREE.BoxGeometry(6, 2, STAIR_RUN + 0.02), stepMat, STAIR_STEPS);
+  const riser = pbr('rock', [3, 0.2], { color: '#8f877b', roughness: 0.95 });
+  const stepGeo = new THREE.BoxGeometry(6, 2, STAIR_RUN + 0.02);
+  const steps = new THREE.InstancedMesh(stepGeo, [riser, riser, stepMat, riser, riser, riser], STAIR_STEPS);
   const d = new THREE.Object3D();
   for (let i = 0; i < STAIR_STEPS; i++) {
     d.position.set(0, -STAIR_RISE * (i + 1) - 1, STAIR_TOP_Z + STAIR_RUN * (i + 0.5));
@@ -189,8 +207,15 @@ function makePlaza() {
     steps.setMatrixAt(i, d.matrix);
   }
   g.add(steps);
-  const landing = new THREE.Mesh(new THREE.BoxGeometry(12, 2, 8), stepMat);
-  landing.position.set(0, STAIR_FOOT.y - 1, STAIR_FOOT.z + 4);
+  const nosing = new THREE.InstancedMesh(new THREE.BoxGeometry(6.02, 0.05, 0.1), new THREE.MeshStandardMaterial({ color: '#eee8dc', roughness: 0.7 }), STAIR_STEPS);
+  for (let i = 0; i < STAIR_STEPS; i++) {
+    d.position.set(0, -STAIR_RISE * (i + 1) + 0.005, STAIR_TOP_Z + STAIR_RUN * (i + 1) - 0.05);
+    d.updateMatrix();
+    nosing.setMatrixAt(i, d.matrix);
+  }
+  g.add(nosing);
+  const landing = new THREE.Mesh(new THREE.BoxGeometry(12, 6, 8), pbr('paving', [3, 2], { color: '#cbc4b8', roughness: 0.85 }));
+  landing.position.set(0, STAIR_FOOT.y - 3, STAIR_FOOT.z + 4);
   g.add(landing);
 
   const marble = pbr('monument', 0.5, { color: '#efebe2', roughness: 0.7 });
@@ -211,59 +236,85 @@ function makePlaza() {
   return shadowed(g);
 }
 
-function blocks({ pos, target, radius = 14, cone = 0.6, range = 90 }, x, z) {
+function blocks({ pos, target, radius = 14, cone = 0.6, range = 90, sightline = false }, x, z, top = Infinity) {
   const dx = x - pos.x, dz = z - pos.z, dist = Math.hypot(dx, dz);
   if (dist < radius) return true;
   if (!target) return false;
-  const tx = target.x - pos.x, tz = target.z - pos.z;
-  return dist < range && (dx * tx + dz * tz) / (dist * Math.hypot(tx, tz)) > Math.cos(cone);
+  const tx = target.x - pos.x, tz = target.z - pos.z, tLen = Math.hypot(tx, tz);
+  if (dist >= range || (dx * tx + dz * tz) / (dist * tLen) <= Math.cos(cone)) return false;
+  if (!sightline) return true;
+  const lookDown = (target.y - pos.y) / tLen;
+  return top > pos.y + lookDown * dist + dist * 0.1;
 }
 
-function makeTrees(mobile, clear) {
-  const count = mobile ? 480 : 900;
-  const geo = new THREE.PlaneGeometry(0.5, 1);
+function billboards({ atlas, cols, rows, aspect, count, tint }, place) {
+  const geo = new THREE.PlaneGeometry(aspect, 1);
   geo.translate(0, 0.5, 0);
-  const vars = new Float32Array(count * 2);
-  geo.setAttribute('aVar', new THREE.InstancedBufferAttribute(vars, 2));
-  const mat = new THREE.MeshBasicMaterial({ map: tex('pines.webp', 1), color: '#efe2c4', alphaTest: 0.45, side: THREE.DoubleSide });
+  const vars = new Float32Array(count * 4);
+  geo.setAttribute('aVar', new THREE.InstancedBufferAttribute(vars, 4));
+  const mat = new THREE.MeshBasicMaterial({ map: tex(atlas, 1), color: tint, alphaTest: 0.45, side: THREE.DoubleSide });
   mat.map.wrapS = mat.map.wrapT = THREE.ClampToEdgeWrapping;
-  mat.alphaToCoverage = !mobile;
   mat.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec2 aVar;')
-      .replace('#include <uv_vertex>', '#include <uv_vertex>\nvMapUv.x = (vMapUv.x + aVar.x) * 0.25;')
+      .replace('#include <common>', '#include <common>\nattribute vec4 aVar;\nvarying float vShade;')
+      .replace('#include <uv_vertex>', `#include <uv_vertex>
+        vMapUv = vec2((vMapUv.x + mod(aVar.x, ${cols}.0)) / ${cols}.0, (vMapUv.y + ${rows - 1}.0 - floor(aVar.x / ${cols}.0)) / ${rows}.0);
+        vShade = aVar.z * mix(0.62, 1.0, uv.y);`)
       .replace('#include <project_vertex>', `
         vec3 base = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         float sc = length(instanceMatrix[1].xyz);
         vec3 right = normalize(vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]));
-        vec4 mvPosition = viewMatrix * vec4(base + right * position.x * sc * aVar.y + vec3(0.0, position.y * sc, 0.0), 1.0);
+        vec4 mvPosition = viewMatrix * vec4(base + right * position.x * sc * aVar.y * aVar.w + vec3(0.0, position.y * sc, 0.0), 1.0);
         gl_Position = projectionMatrix * mvPosition;`);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vShade;')
+      .replace('#include <alphatest_fragment>', '#include <alphatest_fragment>\ndiffuseColor.rgb *= vShade;');
   };
-  const trees = new THREE.InstancedMesh(geo, mat, count);
-  trees.frustumCulled = false;
-  const d = new THREE.Object3D();
-  const keepOut = ZHANG_POS.clone().addScaledVector(ZHANG_FACING, 7);
+  const mesh = new THREE.InstancedMesh(geo, mat, count);
+  mesh.frustumCulled = false;
   const placed = [];
-  let i = 0, guard = 0;
-  while (i < count && guard++ < 20000) {
-    const r = 27 + Math.pow(Math.random(), 1.1) * 260, a = Math.random() * Math.PI * 2;
-    const x = r * Math.cos(a), z = r * Math.sin(a);
-    if (Math.abs(x) < 8 && z > 15 && z < STAIR_FOOT.z + 14) continue;
-    if (Math.hypot(x - ZHANG_POS.x, z - ZHANG_POS.z) < 8 || Math.hypot(x - keepOut.x, z - keepOut.z) < 9) continue;
-    if (clear.some((c) => blocks(c, x, z))) continue;
-    const h = 9 + Math.random() * 8;
-    placed.push([x, terrainHeight(x, z) - 0.4, z, h]);
-    i++;
+  for (let guard = 0; placed.length < count && guard < count * 40; guard++) {
+    const p = place();
+    if (p) placed.push(p);
   }
   placed.sort((p, q) => Math.hypot(p[0], p[2]) - Math.hypot(q[0], q[2]));
-  placed.forEach(([x, y, z, h], k) => {
+  const d = new THREE.Object3D();
+  placed.forEach(([x, y, z, h, cell, shade, width], k) => {
     d.position.set(x, y, z); d.scale.setScalar(h); d.updateMatrix();
-    trees.setMatrixAt(k, d.matrix);
-    vars[k * 2] = Math.floor(Math.random() * 4);
-    vars[k * 2 + 1] = Math.random() < 0.5 ? -1 : 1;
+    mesh.setMatrixAt(k, d.matrix);
+    vars.set([cell, Math.random() < 0.5 ? -1 : 1, shade, width], k * 4);
   });
-  trees.count = placed.length;
-  return trees;
+  mesh.count = placed.length;
+  return mesh;
+}
+
+const onStairs = (x, z, pad) => Math.abs(x) < 3.3 + pad && z > STAIR_TOP_Z - 1 && z < STAIR_FOOT.z + 9;
+const nearZhang = (x, z, keepOut) => Math.hypot(x - ZHANG_POS.x, z - ZHANG_POS.z) < 8 || Math.hypot(x - keepOut.x, z - keepOut.z) < 9;
+
+function makeVegetation(mobile, clear) {
+  const keepOut = ZHANG_POS.clone().addScaledVector(ZHANG_FACING, 7);
+  const ring = (r0, span, pow) => { const r = r0 + Math.pow(Math.random(), pow) * span, a = Math.random() * Math.PI * 2; return [r * Math.cos(a), r * Math.sin(a), r]; };
+  const g = new THREE.Group();
+  g.add(billboards({ atlas: 'pines.webp', cols: 4, rows: 1, aspect: 0.5, count: mobile ? 1100 : 2400, tint: '#efe2c4' }, () => {
+    const [x, z, r] = ring(24, 400, 1.5);
+    if (Math.random() > 0.4 + 0.6 * forestDensity(x, z)) return null;
+    const y = terrainHeight(x, z) - 0.4, h = 8 + Math.random() * 10;
+    if (onStairs(x, z, 2.2) || nearZhang(x, z, keepOut) || clear.some((c) => blocks(c, x, z, y + h))) return null;
+    return [x, y, z, h, Math.floor(Math.random() * 4), 0.78 + Math.random() * 0.3, 0.8 + Math.random() * 0.45];
+  }));
+  g.add(billboards({ atlas: 'undergrowth.webp', cols: 4, rows: 2, aspect: 1, count: mobile ? 500 : 1500, tint: '#e8dcbc' }, () => {
+    const [x, z, r] = ring(PLAZA_R + 2, 150, 1.6);
+    if (Math.random() > 0.3 + 0.7 * forestDensity(x, z)) return null;
+    const y = terrainHeight(x, z) - 0.2, h = 2.2 + Math.random() * 3.2;
+    if (onStairs(x, z, 1.4) || nearZhang(x, z, keepOut) || clear.some((c) => Math.hypot(x - c.pos.x, z - c.pos.z) < 7 || (c.sightline && blocks(c, x, z, y + h)))) return null;
+    return [x, y, z, h, Math.floor(Math.random() * 4), 0.8 + Math.random() * 0.3, 0.8 + Math.random() * 0.4];
+  }));
+  g.add(billboards({ atlas: 'undergrowth.webp', cols: 4, rows: 2, aspect: 1, count: mobile ? 1600 : 6000, tint: '#c4c08e' }, () => {
+    const [x, z] = ring(PLAZA_R + 1.2, 85, 1.2);
+    if (onStairs(x, z, 0.35) || nearZhang(x, z, keepOut) || clear.some((c) => Math.hypot(x - c.pos.x, z - c.pos.z) < 3)) return null;
+    return [x, terrainHeight(x, z) - 0.1, z, 0.5 + Math.random() * 0.6, Math.random() < 0.5 ? 5 : 7, 0.75 + Math.random() * 0.35, 1 + Math.random() * 0.6];
+  }));
+  return g;
 }
 
 function makeZhangRock() {
@@ -314,7 +365,7 @@ export function buildWorld(scene, mobile, clear, onReady) {
   scene.add(sun, sun.target);
   scene.add(makeTerrain(mobile));
   scene.add(makePlaza());
-  scene.add(makeTrees(mobile, clear));
+  scene.add(makeVegetation(mobile, clear));
   scene.add(makeMonument(), makeZhangRock());
 }
 

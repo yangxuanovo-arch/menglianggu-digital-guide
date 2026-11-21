@@ -18,6 +18,8 @@ materials = {
     'rock_boulder_dry': '岩石',
     'leafy_grass': '绿篱',
     'pine_tree_01': '松树模型（离线渲染为公告板贴图）',
+    'pine_sapling_small': '幼松模型（离线渲染为贴图）',
+    'grass_medium_01': '草丛模型（离线渲染为贴图）',
 }
 photos = []
 for key, m in scene['images'].items():
@@ -36,11 +38,11 @@ credits = {
         'media': photos + [dict(title=title, author='Poly Haven', license='CC0',
                                url='https://polyhaven.com/a/' + slug,
                                licenseUrl='https://creativecommons.org/publicdomain/zero/1.0/',
-                               changes='512px材质；天空与松树按模块用途处理')
+                               changes='植物模型离线渲染为贴图' if slug in ['pine_tree_01', 'pine_sapling_small', 'grass_medium_01'] else '512px材质；天空按模块用途处理')
                            for slug, title in materials.items()],
         'notes': [
             '三维模型由程序化代码依据实景照片概略重现，不是测绘级模型，尺寸、比例与方位为示意。',
-            '本模块使用AI辅助文案整理与代码编写；讲解由Microsoft Edge神经网络语音zh-CN-YunyangNeural合成，字幕同步生成。未使用AI生成图片：材质与天空来自实拍扫描，松树贴图来自公开三维模型的离线渲染。',
+            '本模块使用AI辅助文案整理与代码编写；讲解由Microsoft Edge神经网络语音zh-CN-YunyangNeural合成，字幕同步生成。未使用AI生成图片：材质与天空来自实拍扫描，松树、幼松与草丛贴图来自公开三维模型的离线渲染。',
             '三维引擎采用Three.js 0.170（MIT）。',
         ],
     },
@@ -61,4 +63,4 @@ credits = {
 }
 out = ROOT / 'web/content/module-credits.js'
 out.write_text('window.GUIDE_MODULE_CREDITS = ' + json.dumps(credits, ensure_ascii=False, indent=2) + ';\n')
-print('Module credits: panorama 5 sources / 4 Commons photos / 7 CC0 assets; terrain 5 sources / DEM provenance and AI disclosure')
+print('Module credits: panorama 5 sources / 4 Commons photos / 9 CC0 assets; terrain 5 sources / DEM provenance and AI disclosure')

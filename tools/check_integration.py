@@ -34,10 +34,11 @@ def panorama_ready(page, inspect=False):
     frame.locator('#free').click()
     frame.locator('#start.hide').wait_for()
     if inspect:
-        frame.locator('#next').click()
-        frame.locator('#next').click()
-        page.wait_for_timeout(3300)
-        assert frame.locator('#card-title').inner_text()
+        for _ in range(6):
+            frame.locator('#next').click()
+        page.wait_for_timeout(3900)
+        assert frame.locator('#card-title').inner_text() == '胜利之本'
+        assert frame.locator('#card-num').inner_text() == '6/7'
     return frame
 
 
@@ -87,7 +88,9 @@ with sync_playwright() as p:
         scene_credits = page.locator('[data-module-credit=panorama]')
         terrain_credits = page.locator('[data-module-credit=terrain]')
         assert scene_credits.locator('a[href*="commons.wikimedia.org"]').count() == 4
-        assert scene_credits.locator('a[href*="polyhaven.com"]').count() == 7
+        assert scene_credits.locator('a[href*="polyhaven.com"]').count() == 9
+        assert scene_credits.locator('a[href="https://polyhaven.com/a/pine_sapling_small"]').count() == 1
+        assert scene_credits.locator('a[href="https://polyhaven.com/a/grass_medium_01"]').count() == 1
         assert 'zh-CN-YunyangNeural' in scene_credits.inner_text()
         assert 'SRTM' in terrain_credits.inner_text() and 'AI' in terrain_credits.inner_text()
         for module in ['panorama', 'terrain']:
@@ -101,7 +104,7 @@ with sync_playwright() as p:
         page.locator('dialog[open]').wait_for(state='hidden')
         assert panorama.evaluate('e=>e===document.activeElement')
         assert not errors, errors
-        print(f'PASS integration {width}x{height}: terrain/panorama portals render 3D and return with focus; sandbox source/AI entries and panorama top-right AI entry removed; About retains both modules sources, 4 photos, 7 CC0 assets, DEM and AI credits; console errors: {errors}', flush=True)
+        print(f'PASS integration {width}x{height}: terrain/panorama portals render 3D and return with focus; hotspot 6 wide view captured; sandbox source/AI entries and panorama top-right AI entry removed; About retains both modules sources, 4 photos, 9 CC0 assets, DEM and AI credits; console errors: {errors}', flush=True)
         context.close()
     server = ThreadingHTTPServer(('127.0.0.1', 0), partial(Handler, directory=str(ROOT / 'web')))
     Thread(target=server.serve_forever, daemon=True).start()

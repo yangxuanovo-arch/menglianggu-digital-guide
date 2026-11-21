@@ -15,7 +15,7 @@ const VIEWS = {
   plaque: { pos: V(0, 13.5, 19), target: V(0, 13.8, 3.5), dur: 3, drift: 'sway', anchor: V(0, 13.9, 4.4) },
   battle: { pos: V(9, 3.4, -11), target: V(40, -6, -40), dur: 3.5, drift: 'pan', anchor: V(13, 2.6, -14.5) },
   zhang: { pos: zhangCam, target: ZHANG_POS.clone().add(V(0, 0.8, 0)), dur: 4, drift: 'sway', anchor: () => ZHANG_POS.clone().addScaledVector(ZHANG_FACING, 4.6).add(V(0, 3.4, 0)) },
-  people: { pos: V(-9, 5.5, 17), target: V(-16, -24, 70), dur: 3.5, drift: 'pan', anchor: V(-14.5, 2.6, 12.5) },
+  people: { pos: V(-9, 5.5, 17), target: V(-16, -24, 70), dur: 3.5, drift: 'pan', clearRange: 12, anchor: V(-14.5, 2.6, 12.5) },
   outro: { pos: V(0, 3.5, 30), target: V(0, 15, 0), dur: 3, drift: 'dolly', anchor: V(0, 3.2, 7.2) },
 };
 const stops = content.stops.map((s) => ({ ...s, view: VIEWS[s.id], cues: cues[s.id] }));
@@ -53,7 +53,7 @@ function initGL() {
   controls.maxPolarAngle = Math.PI * 0.62;
   controls.enablePan = !mobile;
   controls.addEventListener('start', () => { manual = true; tween.active = false; });
-  buildWorld(scene, mobile, Object.values(VIEWS).map((v) => (v.drift === 'pan' ? { pos: v.pos, target: v.target, radius: 16, cone: 1.3 } : { pos: v.pos, target: v.target, radius: 10, cone: 0.35, range: v.pos.distanceTo(v.target) + 3 })), () => $('#start').classList.add('ready'));
+  buildWorld(scene, mobile, Object.values(VIEWS).map((v) => (v.drift === 'pan' ? { pos: v.pos, target: v.target, radius: 9, cone: 0.9, range: v.clearRange || 400, sightline: !v.clearRange } : { pos: v.pos, target: v.target, radius: 10, cone: 0.35, range: v.pos.distanceTo(v.target) + 3 })), () => $('#start').classList.add('ready'));
   setTimeout(() => $('#start').classList.add('ready'), 6000);
   resize();
   addEventListener('resize', resize);
@@ -238,7 +238,7 @@ function buildCredits() {
     <ul>
       <li>解说词：由 AI（Devin）依据下列史料来源整理撰写，经逐条对照来源核实。</li>
       <li>语音：AI 语音合成（Microsoft Edge 神经网络语音 zh-CN-YunyangNeural）。字幕与语音同步生成。</li>
-      <li>三维场景：由 AI 辅助编写代码程序化生成的示意模型，依据下列实景照片概略复原，<b>不是测绘级模型</b>，尺寸、比例与方位均为示意。石材、地面、天空采用 Poly Haven 实拍扫描贴图与实拍全景天空（CC0），松树为 Poly Haven 三维松树模型（CC0）的离线渲染图。</li>
+      <li>三维场景：由 AI 辅助编写代码程序化生成的示意模型，依据下列实景照片概略复原，<b>不是测绘级模型</b>，尺寸、比例与方位均为示意。石材、地面、天空采用 Poly Haven 实拍扫描贴图与实拍全景天空（CC0），松树、幼松与草丛为 Poly Haven 三维植物模型（CC0）的离线渲染图。</li>
       <li><b>本页没有使用 AI 生成的图片。</b>所有照片与贴图均为实拍或由公开三维模型渲染，碑名与石刻贴图裁切自下列实拍照片。</li>
     </ul>
     <h3>图片来源与许可</h3>
@@ -246,7 +246,7 @@ function buildCredits() {
       <li>碑名贴图裁切自 Sprt98 摄纪念碑照片；石刻贴图裁切自 Windmemories 摄“击毙张灵甫之地”照片；均按 CC BY-SA 4.0 共享。</li>
     </ul>
     <h3>三维贴图与天空（Poly Haven，CC0 公有领域）</h3>
-    <ul><li>天空全景（HDRI，地平线以下改为雾色）：<a href="https://polyhaven.com/a/lenong_2" target="_blank" rel="noopener">Poly Haven lenong_2</a>，CC0。</li><li>碑体石材：<a href="https://polyhaven.com/a/concrete_wall_008" target="_blank" rel="noopener">Poly Haven concrete_wall_008</a>，CC0。</li><li>广场与台阶铺石：<a href="https://polyhaven.com/a/granite_tile" target="_blank" rel="noopener">Poly Haven granite_tile</a>，CC0。</li><li>山地地表：<a href="https://polyhaven.com/a/aerial_grass_rock" target="_blank" rel="noopener">Poly Haven aerial_grass_rock</a>，CC0。</li><li>岩石：<a href="https://polyhaven.com/a/rock_boulder_dry" target="_blank" rel="noopener">Poly Haven rock_boulder_dry</a>，CC0。</li><li>绿篱：<a href="https://polyhaven.com/a/leafy_grass" target="_blank" rel="noopener">Poly Haven leafy_grass</a>，CC0。</li><li>松树（三维模型渲染为贴图）：<a href="https://polyhaven.com/a/pine_tree_01" target="_blank" rel="noopener">Poly Haven pine_tree_01</a>，CC0。</li></ul>
+    <ul><li>天空全景（HDRI，地平线以下改为雾色）：<a href="https://polyhaven.com/a/lenong_2" target="_blank" rel="noopener">Poly Haven lenong_2</a>，CC0。</li><li>碑体石材：<a href="https://polyhaven.com/a/concrete_wall_008" target="_blank" rel="noopener">Poly Haven concrete_wall_008</a>，CC0。</li><li>广场与台阶铺石：<a href="https://polyhaven.com/a/granite_tile" target="_blank" rel="noopener">Poly Haven granite_tile</a>，CC0。</li><li>山地地表：<a href="https://polyhaven.com/a/aerial_grass_rock" target="_blank" rel="noopener">Poly Haven aerial_grass_rock</a>，CC0。</li><li>岩石：<a href="https://polyhaven.com/a/rock_boulder_dry" target="_blank" rel="noopener">Poly Haven rock_boulder_dry</a>，CC0。</li><li>绿篱：<a href="https://polyhaven.com/a/leafy_grass" target="_blank" rel="noopener">Poly Haven leafy_grass</a>，CC0。</li><li>松树（三维模型渲染为贴图）：<a href="https://polyhaven.com/a/pine_tree_01" target="_blank" rel="noopener">Poly Haven pine_tree_01</a>，CC0。</li><li>幼松（三维模型渲染为贴图）：<a href="https://polyhaven.com/a/pine_sapling_small" target="_blank" rel="noopener">Poly Haven pine_sapling_small</a>，CC0。</li><li>草丛（三维模型渲染为贴图）：<a href="https://polyhaven.com/a/grass_medium_01" target="_blank" rel="noopener">Poly Haven grass_medium_01</a>，CC0。</li></ul>
     <h3>史料来源</h3>
     <div class="cite">${srcLinks(Object.keys(content.sources))}</div>
     <h3>审慎说明</h3>

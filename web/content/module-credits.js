@@ -62,7 +62,7 @@ window.GUIDE_MODULE_CREDITS = {
         "license": "CC0",
         "url": "https://polyhaven.com/a/lenong_2",
         "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "changes": "512px材质；天空与松树按模块用途处理"
+        "changes": "512px材质；天空按模块用途处理"
       },
       {
         "title": "碑体石材",
@@ -70,7 +70,7 @@ window.GUIDE_MODULE_CREDITS = {
         "license": "CC0",
         "url": "https://polyhaven.com/a/concrete_wall_008",
         "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "changes": "512px材质；天空与松树按模块用途处理"
+        "changes": "512px材质；天空按模块用途处理"
       },
       {
         "title": "广场与台阶铺石",
@@ -78,7 +78,7 @@ window.GUIDE_MODULE_CREDITS = {
         "license": "CC0",
         "url": "https://polyhaven.com/a/granite_tile",
         "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "changes": "512px材质；天空与松树按模块用途处理"
+        "changes": "512px材质；天空按模块用途处理"
       },
       {
         "title": "山地地表",
@@ -86,7 +86,7 @@ window.GUIDE_MODULE_CREDITS = {
         "license": "CC0",
         "url": "https://polyhaven.com/a/aerial_grass_rock",
         "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "changes": "512px材质；天空与松树按模块用途处理"
+        "changes": "512px材质；天空按模块用途处理"
       },
       {
         "title": "岩石",
@@ -94,7 +94,7 @@ window.GUIDE_MODULE_CREDITS = {
         "license": "CC0",
         "url": "https://polyhaven.com/a/rock_boulder_dry",
         "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "changes": "512px材质；天空与松树按模块用途处理"
+        "changes": "512px材质；天空按模块用途处理"
       },
       {
         "title": "绿篱",
@@ -102,7 +102,7 @@ window.GUIDE_MODULE_CREDITS = {
         "license": "CC0",
         "url": "https://polyhaven.com/a/leafy_grass",
         "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "changes": "512px材质；天空与松树按模块用途处理"
+        "changes": "512px材质；天空按模块用途处理"
       },
       {
         "title": "松树模型（离线渲染为公告板贴图）",
@@ -110,12 +110,28 @@ window.GUIDE_MODULE_CREDITS = {
         "license": "CC0",
         "url": "https://polyhaven.com/a/pine_tree_01",
         "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "changes": "512px材质；天空与松树按模块用途处理"
+        "changes": "植物模型离线渲染为贴图"
+      },
+      {
+        "title": "幼松模型（离线渲染为贴图）",
+        "author": "Poly Haven",
+        "license": "CC0",
+        "url": "https://polyhaven.com/a/pine_sapling_small",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "changes": "植物模型离线渲染为贴图"
+      },
+      {
+        "title": "草丛模型（离线渲染为贴图）",
+        "author": "Poly Haven",
+        "license": "CC0",
+        "url": "https://polyhaven.com/a/grass_medium_01",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "changes": "植物模型离线渲染为贴图"
       }
     ],
     "notes": [
       "三维模型由程序化代码依据实景照片概略重现，不是测绘级模型，尺寸、比例与方位为示意。",
-      "本模块使用AI辅助文案整理与代码编写；讲解由Microsoft Edge神经网络语音zh-CN-YunyangNeural合成，字幕同步生成。未使用AI生成图片：材质与天空来自实拍扫描，松树贴图来自公开三维模型的离线渲染。",
+      "本模块使用AI辅助文案整理与代码编写；讲解由Microsoft Edge神经网络语音zh-CN-YunyangNeural合成，字幕同步生成。未使用AI生成图片：材质与天空来自实拍扫描，松树、幼松与草丛贴图来自公开三维模型的离线渲染。",
       "三维引擎采用Three.js 0.170（MIT）。"
     ]
   },
