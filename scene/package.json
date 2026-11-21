@@ -1,0 +1,12 @@
+{
+  "name": "menglianggu-monument-scene",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --minify --format=esm --target=es2019 --outfile=../web/scene/app.js",
+    "audio": "python3 tools/generate_audio.py"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.0",
+    "three": "0.170.0"
+  }
+}
