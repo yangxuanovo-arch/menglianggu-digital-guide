@@ -51,7 +51,14 @@ $('fly').addEventListener('click',()=>{
 $('view').addEventListener('click',()=>{if(!ready)return;stopFlight();overhead=!overhead;$('view').setAttribute('aria-pressed',String(overhead));tweenCamera(overhead ? new THREE.Vector3(0,mobile?78:39,.05) : defaultCamera());});
 $('layers').addEventListener('click',()=>{terrainOnly=!terrainOnly;$('layers').setAttribute('aria-pressed',String(terrainOnly));$('layers').setAttribute('aria-label',terrainOnly?'显示战役图层':'切换纯地形模式');updateVisibility();});
 $('exaggeration').addEventListener('change',e=>{exaggeration=Number(e.target.value);if(ready){rebuildSurface();updateUnits();}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){stopFlight();$('unit-card').hidden=true;}});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||sourceDialog.open)return;
+  const hadUnitCard=!$('unit-card').hidden;
+  stopFlight();$('unit-card').hidden=true;
+  // Keyboard events inside an iframe do not reach the shell's native dialog.
+  // An inner source dialog or unit card consumes Escape before the wrapper.
+  if(window.parent!==window&&!hadUnitCard){e.preventDefault();window.parent.postMessage({type:'guide:terrain-close'},location.origin);}
+});
 
 function setPlaying(value){playing=value;$('play-icon').textContent=value?'Ⅱ':'▶';$('play-copy').textContent=value?'暂停推演':'播放推演';$('play').setAttribute('aria-label',value?'暂停战役推演':'播放战役推演');}
 function stopFlight(){flying=false;$('fly').setAttribute('aria-pressed','false');$('fly').setAttribute('aria-label','开始电影运镜');$('hint').style.opacity='1';}
