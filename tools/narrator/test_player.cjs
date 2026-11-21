@@ -22,6 +22,18 @@ function serveMedia(route, file, contentType) {
   } });
 }
 
+async function assertBufferingRecovery(page, video) {
+  assert.notEqual(await page.locator('#announcer').textContent(), '讲解正在缓冲，请稍候', 'Healthy playback must not announce buffering');
+  await page.evaluate(video => {
+    const media = video ? document.querySelector('#avatar') : window.testFallback;
+    media.dispatchEvent(new Event('waiting'));
+  }, video);
+  assert.equal(await page.locator('#announcer').textContent(), '讲解正在缓冲，请稍候');
+  await page.locator('#gPause').click();
+  await page.locator('#gPause').click();
+  await page.waitForFunction(() => document.querySelector('#announcer').textContent === '讲解正在播放');
+}
+
 async function main() {
   const browser = await chromium.launch({
     executablePath: process.env.CHROME || 'google-chrome', headless: true,
@@ -69,6 +81,7 @@ async function main() {
         const v = document.querySelector('#avatar');
         return !v.paused && v.currentTime > 0.25 && v.videoWidth === 480 && v.webkitAudioDecodedByteCount > 0;
       });
+      await assertBufferingRecovery(page, true);
       const layout = await page.evaluate(() => {
         function box(selector) {
           const r = document.querySelector(selector).getBoundingClientRect();
@@ -159,6 +172,7 @@ async function main() {
       await page.waitForFunction(() => document.querySelector('#avatar').currentTime > 0.1);
       await page.locator('#avatar').evaluate(v => v.currentTime = v.duration - 0.1);
       await page.waitForFunction(() => !window.testFallback.paused && window.testFallback.currentTime > 0.2);
+      await assertBufferingRecovery(page, false);
       assert.ok(await page.locator('#avatar').evaluate(v => v.hidden && v.paused && !v.hasAttribute('src')));
       assert.ok(await page.locator('#bubble').textContent());
       await page.screenshot({ path: path.join(shots, `${viewport.width}-fallback.png`) });
@@ -209,7 +223,7 @@ async function main() {
       await page.locator('#gStop').click();
 
       assert.deepEqual(errors, []);
-      console.log(`PASS ${viewport.width}x${viewport.height}: idle, audible video, pause/resume/stop, point replay after end, interrupted-point replay stamps, MP3 fallback, complete tour chaining/stamps, autoplay retry, empty media/SRT, audio error`);
+      console.log(`PASS ${viewport.width}x${viewport.height}: idle, audible video, video/MP3 buffering announcement recovery, pause/resume/stop, point replay after end, interrupted-point replay stamps, MP3 fallback, complete tour chaining/stamps, autoplay retry, empty media/SRT, audio error`);
       console.log(`Console ${viewport.width}: application errors=0; expected missing-video HTTP 404 diagnostics=${missing.length}`);
       console.log(`Expected diagnostic: ${missing[0]}`);
       await context.close();
