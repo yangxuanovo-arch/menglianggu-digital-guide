@@ -128,7 +128,7 @@ $('#sheetClose').onclick=function(){closeSheet();setTab('map')};
 
 /* ---------- panels ---------- */
 function openPanel(t,h){stopTour();guide.classList.add('hidden');map.invalidateSize({pan:false});if(playingId&&!audio.paused)h='<p id="panelAudioStatus">AI合成语音 · 正在讲解：'+esc(byId(playingId)?byId(playingId).name:G.site.name)+' <button class="btn-ghost" id="panelAudioStop">停止讲解</button></p>'+h;$('#panelTitle').textContent=t;$('#panelBody').innerHTML=h;$('#panel').classList.remove('hidden');$('#panel').scrollTop=0;var b=$('#ctxBack');if(b)b.onclick=function(){closePanel();setTab('map')};var stop=$('#panelAudioStop');if(stop)stop.onclick=function(){stopSpeak(false);$('#panelAudioStatus').textContent='讲解已停止；听完本点讲解可集章'}}
-function closePanel(){$('#panel').classList.add('hidden');if(map.hasLayer(ctxLayer)){map.removeLayer(ctxLayer);home()}}
+function closePanel(){$('#panel').classList.add('hidden');if(playingId)guide.classList.remove('hidden');map.invalidateSize({pan:false});if(map.hasLayer(ctxLayer)){map.removeLayer(ctxLayer);home()}}
 $('#panelClose').onclick=function(){closePanel();setTab('map')};
 function closeAll(){closeSheet();closePanel()}
 function setTab(t){document.querySelectorAll('#tabbar button').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t)})}
