@@ -33,11 +33,13 @@ with sync_playwright() as p:
     assert not fonts, fonts
     assert 'maximum-scale' not in page.locator('meta[name=viewport]').get_attribute('content')
     assert page.locator('#intro').get_attribute('role') == 'dialog'
-    page.locator('#introStart').focus()
+    intro_buttons = page.locator('#intro button')
+    intro_buttons.first.focus()
     page.keyboard.press('Shift+Tab')
-    assert page.locator('#introTour').evaluate('(e)=>e===document.activeElement')
+    assert intro_buttons.last.evaluate('(e)=>e===document.activeElement')
     page.keyboard.press('Tab')
-    assert page.locator('#introStart').evaluate('(e)=>e===document.activeElement')
+    assert intro_buttons.first.evaluate('(e)=>e===document.activeElement')
+    page.locator('#introStart').focus()
     page.keyboard.press('Enter')
     page.locator('#hallShortcut').focus()
     page.keyboard.press('Enter')

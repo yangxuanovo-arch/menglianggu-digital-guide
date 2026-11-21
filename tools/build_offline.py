@@ -12,7 +12,9 @@ GLYPHS = '红色研学证书同你已通过崮上丰碑数字导览完成孟良�
 subprocess.run([sys.executable, '-m', 'fontTools.subset', str(SOURCE), '--text=' + GLYPHS,
                 '--flavor=woff2', '--output-file=' + str(WEB/'vendor/fonts/certificate.woff2')], check=True)
 assets = sorted(p.relative_to(WEB).as_posix() for p in WEB.rglob('*')
-                if p.is_file() and p.name != 'sw.js' and p.suffix not in ['.otf', '.ttf', '.woff2'])
+                if p.is_file() and p.name not in ['sw.js', 'package.json', 'package-lock.json']
+                and not any(part.startswith('.') or part in ['node_modules', 'src'] for part in p.relative_to(WEB).parts)
+                and p.suffix not in ['.otf', '.ttf', '.woff2', '.md', '.map'] and p.stat().st_size <= 2 * 1024 * 1024)
 version = hashlib.sha256(b''.join(p.encode() + (WEB/p).read_bytes() for p in assets) + (WEB/'vendor/fonts/certificate.woff2').read_bytes()).hexdigest()[:16]
 worker = '''const CACHE='menglianggu-guide-VERSION';
 const ASSETS=ASSET_LIST;
