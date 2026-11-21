@@ -190,7 +190,7 @@ function updateUnits(){
 function updateVisibility(){
   for(const u of movingUnits){u.group.visible=!terrainOnly;u.label.el.style.display=terrainOnly?'none':'';}
   for(const r of routes){r.mesh.visible=!terrainOnly;r.glow.visible=!terrainOnly;r.arrow.visible=!terrainOnly;}
-  $('unit-card').hidden=true;
+  if(terrainOnly)$('unit-card').hidden=true;
 }
 
 function buildScene(){
