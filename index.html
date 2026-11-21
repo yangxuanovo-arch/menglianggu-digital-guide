@@ -2,33 +2,45 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#351211">
 <title>崮上丰碑 · 孟良崮战役纪念地数字导览</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/epic.css">
 </head>
 <body>
+<svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="icon-star" viewBox="0 0 24 24"><path d="m12 2 3 6.4 7 .9-5.1 4.9 1.3 7-6.2-3.4-6.2 3.4 1.3-7L2 9.3l7-.9Z"/></symbol>
+  <symbol id="icon-map" viewBox="0 0 24 24"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2Zm6-2v16m6-14v16"/></symbol>
+  <symbol id="icon-route" viewBox="0 0 24 24"><circle cx="5" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 5h8a4 4 0 0 1 0 8H9a4 4 0 0 0 0 8h5m-2-3 3 3-3 3"/></symbol>
+  <symbol id="icon-stamp" viewBox="0 0 24 24"><circle cx="12" cy="10" r="7"/><path d="m8 16-1 6 5-3 5 3-1-6m-4-10 1.2 2.5 2.8.4-2 2 .5 2.7-2.5-1.3-2.5 1.3.5-2.7-2-2 2.8-.4Z"/></symbol>
+  <symbol id="icon-quiz" viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v16H5V5a2 2 0 0 1 2-2Zm2 6a3 3 0 1 1 4 2.8V14m-1 3v.1"/></symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v7m0-10v.1"/></symbol>
+  <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2"/></symbol>
+</svg>
 <header id="topbar">
-  <div class="brand"><span class="star">★</span><div><h1>崮上丰碑</h1><p>孟良崮战役纪念地 · 数字导览</p></div></div>
+  <div class="brand"><span class="star"><svg class="icon" aria-hidden="true"><use href="#icon-star"/></svg></span><div><h1>崮上丰碑</h1><p>孟良崮战役纪念地 · 数字导览</p></div></div>
   <div class="top-actions">
-    <button id="btnLocate" title="区位">区位</button>
-    <button id="btnHelp" title="使用说明">?</button>
+    <button id="btnLocate" title="区位"><svg class="icon" aria-hidden="true"><use href="#icon-pin"/></svg><span>区位</span></button>
+    <button id="btnHelp" title="使用说明" aria-label="使用说明"><svg class="icon" aria-hidden="true"><use href="#icon-info"/></svg></button>
   </div>
 </header>
 
-<div id="map"></div>
+<div class="landscape-banner" aria-hidden="true"><div class="banner-copy"><span>孟良崮战役纪念地</span><strong>崮上丰碑</strong><small>数字导览</small></div><div class="banner-year">1947</div></div>
+<div id="map" aria-label="孟良崮战役纪念地导览地图"></div>
 
 <!-- point detail sheet -->
 <section id="sheet" class="sheet hidden" aria-live="polite">
   <div class="sheet-handle"></div>
-  <button class="sheet-close" id="sheetClose">×</button>
+  <button class="sheet-close" id="sheetClose" aria-label="关闭点位详情">×</button>
   <div id="sheetBody"></div>
 </section>
 
 <!-- panels -->
 <section id="panel" class="panel hidden">
-  <div class="panel-head"><h2 id="panelTitle"></h2><button class="panel-close" id="panelClose">×</button></div>
+  <div class="panel-head"><h2 id="panelTitle"></h2><button class="panel-close" id="panelClose" aria-label="关闭面板">×</button></div>
   <div id="panelBody" class="panel-body"></div>
 </section>
 
@@ -85,19 +97,23 @@
 </div>
 
 <nav id="tabbar">
-  <button data-tab="map" class="active"><i>⌖</i>导览地图</button>
-  <button data-tab="route"><i>⇢</i>推荐路线</button>
-  <button data-tab="stamps"><i>✪</i>研学打卡</button>
-  <button data-tab="quiz"><i>？</i>知识问答</button>
-  <button data-tab="about"><i>ⓘ</i>关于</button>
+  <button data-tab="map" class="active"><svg class="icon" aria-hidden="true"><use href="#icon-map"/></svg>导览地图</button>
+  <button data-tab="route"><svg class="icon" aria-hidden="true"><use href="#icon-route"/></svg>推荐路线</button>
+  <button data-tab="stamps"><svg class="icon" aria-hidden="true"><use href="#icon-stamp"/></svg>研学打卡</button>
+  <button data-tab="quiz"><svg class="icon" aria-hidden="true"><use href="#icon-quiz"/></svg>知识问答</button>
+  <button data-tab="about"><svg class="icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</button>
 </nav>
 
 <!-- onboarding -->
-<div id="intro" class="intro">
+<div id="intro" class="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
   <div class="intro-card">
-    <div class="intro-star">★</div>
-    <h2>崮上丰碑</h2>
+    <div class="intro-visual">
+    <div class="intro-star"><span></span><svg class="icon" aria-hidden="true"><use href="#icon-star"/></svg><span></span></div>
+    <h2 id="introTitle">崮上丰碑</h2>
     <p class="intro-sub" id="introSub"></p>
+    <div class="intro-year" aria-hidden="true">1947</div>
+    </div>
+    <div class="intro-content">
     <ol class="intro-steps">
       <li><b>点地图上的红色点位</b>，查看图文介绍</li>
       <li><b>点“听讲解”</b>，数字人小崮为你讲述</li>
@@ -105,6 +121,7 @@
     </ol>
     <button id="introStart" class="btn-primary">开始体验</button>
     <button id="introTour" class="btn-ghost">跟随小崮全程导览</button>
+    </div>
   </div>
 </div>
 

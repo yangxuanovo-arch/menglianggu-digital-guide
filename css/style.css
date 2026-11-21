@@ -1,4 +1,3 @@
-@font-face{font-family:GuideCJK;src:url('../vendor/fonts/NotoSansCJKsc-Regular.otf') format('opentype');font-display:swap}
 :root{--red:#b71c1c;--red2:#d32f2f;--gold:#e6b450;--ink:#2a1f1a;--paper:#fbf7ef;--muted:#7a6a5f;--tab:58px;--top:56px}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;font-family:"PingFang SC","Microsoft YaHei",GuideCJK,"Noto Sans CJK SC",sans-serif;color:var(--ink);background:#eee;overflow:hidden}
