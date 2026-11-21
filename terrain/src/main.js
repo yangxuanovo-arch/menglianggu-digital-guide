@@ -235,8 +235,10 @@ function buildScene(){
 function render(now){
   raf=requestAnimationFrame(render);
   const delta=previousFrame?Math.min((now-previousFrame)/1000,.06):0;previousFrame=now;
-  if(suspended)return;
+  if(suspended||document.hidden)return;
   if(playing){setTime(viewTime+delta*.10);if(viewTime>=4)setPlaying(false);}
+  // Timeline narration remains functional when WebGL or elevation is unavailable.
+  if(!ready)return;
   const elapsed=clock.getElapsedTime();
   if(flying){
     flightTime+=delta;const angle=.65+flightTime*.12;
@@ -266,6 +268,8 @@ function fail(reason){
   $('data-status').textContent='史料阅读模式';$('quality-label').textContent='3D 暂不可用';
   $('labels').hidden=true;
   for(const id of ['fly','reset','view','layers','exaggeration'])$(id).disabled=true;
+  previousFrame=0;
+  raf=requestAnimationFrame(render);
 }
 
 setTime(0);
