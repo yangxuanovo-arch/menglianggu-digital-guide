@@ -122,7 +122,7 @@ function playAudio(){
   try{var result=media.play();if(result&&result.catch)result.catch(failed)}catch(e){failed(e)}
 }
 [video,fallbackAudio].forEach(function(media){
-  media.addEventListener('playing',function(){if(media!==audio||!playingId)return;cancelAnimationFrame(raf);wantPlay=true;guide.classList.toggle('video-playing',media===video);$('#gPause').textContent='暂停';loop()});
+  media.addEventListener('playing',function(){if(media!==audio||!playingId)return;cancelAnimationFrame(raf);wantPlay=true;guide.classList.toggle('video-playing',media===video);$('#gPause').textContent='暂停';if($('#announcer').textContent==='讲解正在缓冲，请稍候')$('#announcer').textContent='讲解正在播放';loop()});
   media.addEventListener('pause',function(){if(media===audio)cancelAnimationFrame(raf)});
   media.addEventListener('waiting',function(){if(media!==audio||!playingId)return;cancelAnimationFrame(raf);$('#announcer').textContent='讲解正在缓冲，请稍候'});
   media.addEventListener('error',function(){if(media!==audio||!playingId||!media.error)return;if(media===video){useAudioFallback();return}cancelAnimationFrame(raf);wantPlay=false;$('#gPause').textContent='重试';toast('音频暂不可用，可点击重试或阅读点位全文')});
