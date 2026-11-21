@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5c0a0d">
+<title>崮顶丰碑 · 孟良崮战役纪念碑场景重现</title>
+<meta name="description" content="红色齐鲁数字创意挑战赛 任务二·场景重现（路线甲）：孟良崮战役纪念碑三维场景、热点讲解、语音字幕。">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage" aria-hidden="true"></div>
+<div id="hotspots"></div>
+
+<header id="topbar">
+  <div class="brand"><b>崮顶丰碑</b><span>孟良崮战役纪念碑 · 场景重现</span></div>
+  <div class="top-actions"><button id="back" class="chip" hidden>‹ 返回导览</button><button id="info" class="chip" aria-label="AI声明与图片来源">来源 · AI声明</button></div>
+</header>
+
+<section id="card" hidden>
+  <button id="card-toggle" class="card-head" aria-label="展开或收起讲解卡片"><span id="card-num"></span><b id="card-title"></b><span class="caret">▾</span></button>
+  <div id="card-body"></div>
+</section>
+
+<div id="subtitle" aria-live="polite"></div>
+
+<nav id="controls" aria-label="导览控制">
+  <div id="progress"><div id="bar"></div><div id="dots"></div></div>
+  <div class="row">
+    <button id="prev" aria-label="上一处">‹ 上一处</button>
+    <button id="play">❚❚ 暂停</button>
+    <button id="next" aria-label="下一处">下一处 ›</button>
+    <button id="cc" class="icon" aria-label="字幕开关">字</button>
+    <button id="mute" class="icon" aria-label="静音">音</button>
+  </div>
+</nav>
+
+<div id="start" class="overlay">
+  <div class="panel">
+    <p class="kicker">红色齐鲁数字创意挑战赛 · 任务二 场景重现 · 路线甲</p>
+    <h1>崮顶丰碑</h1>
+    <p class="sub">孟良崮战役纪念碑 三维场景重现</p>
+    <p class="desc">沿台阶登上孟良崮主峰，7 个热点讲述纪念碑、战役与人民支前的历史。语音解说配字幕，<span id="total"></span>；可随时拖动视角、点击金色热点。</p>
+    <button id="go" class="primary"><span class="loading">场景加载中…</span><span class="ok">开始参观（语音导览）</span></button>
+    <button id="free" class="ghost">自由浏览</button>
+    <p class="note">本页三维模型为示意复原；解说词与语音由 AI 辅助生成，详见“来源 · AI声明”。</p>
+  </div>
+</div>
+
+<div id="finish" class="overlay">
+  <div class="panel">
+    <h2>缅怀先烈 · 铭记历史</h2>
+    <p class="desc">参观结束。你可以继续拖动视角，点击金色热点重听任一讲解。</p>
+    <button id="browse" class="primary">继续浏览</button>
+    <button id="replay" class="ghost">重新参观</button>
+    <button id="finish-credits" class="ghost">来源与 AI 声明</button>
+  </div>
+</div>
+
+<div id="credits" class="overlay">
+  <div class="panel scroll">
+    <button id="credits-close" class="close" aria-label="关闭">×</button>
+    <h2>来源与 AI 声明</h2>
+    <div id="credits-body"></div>
+  </div>
+</div>
+<noscript><p class="noscript">本页需要启用 JavaScript。</p></noscript>
+<script type="module" src="app.js"></script>
+</body>
+</html>
