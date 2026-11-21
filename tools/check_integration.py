@@ -21,6 +21,8 @@ def terrain_ready(page):
     frame = page.frame_locator('dialog[open] iframe')
     frame.locator('#data-status').filter(has_text='真实数字高程').wait_for(timeout=30000)
     assert frame.locator('#scene canvas').is_visible()
+    assert frame.locator('#sources-open').count() == 0
+    assert frame.locator('#disclosure').count() == 0
     return frame
 
 
@@ -99,7 +101,7 @@ with sync_playwright() as p:
         page.locator('dialog[open]').wait_for(state='hidden')
         assert panorama.evaluate('e=>e===document.activeElement')
         assert not errors, errors
-        print(f'PASS integration {width}x{height}: terrain/panorama portals render 3D and return with focus; top-right AI entry removed; About retains both modules sources, 4 photos, 7 CC0 assets, DEM and AI credits; console errors: {errors}', flush=True)
+        print(f'PASS integration {width}x{height}: terrain/panorama portals render 3D and return with focus; sandbox source/AI entries and panorama top-right AI entry removed; About retains both modules sources, 4 photos, 7 CC0 assets, DEM and AI credits; console errors: {errors}', flush=True)
         context.close()
     server = ThreadingHTTPServer(('127.0.0.1', 0), partial(Handler, directory=str(ROOT / 'web')))
     Thread(target=server.serve_forever, daemon=True).start()

@@ -29,9 +29,7 @@ $('phase-buttons').addEventListener('click', e=>{
 });
 $('scrub').addEventListener('input',e=>{setPlaying(false);setTime(Number(e.target.value));});
 $('play').addEventListener('click',()=>{if(viewTime>=4)setTime(0);setPlaying(!playing);});
-$('sources-open').addEventListener('click',()=>openSources());
 $('sources-close').addEventListener('click',()=>sourceDialog.close());
-$('disclosure').addEventListener('click',()=>openSources('ai'));
 $('phase-source').addEventListener('click',()=>openSources(phases[selectedPhase].sourceIds[0]));
 $('unit-close').addEventListener('click',()=>{$('unit-card').hidden=true;});
 sourceDialog.addEventListener('click',e=>{if(e.target===sourceDialog){const r=sourceDialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)sourceDialog.close();}});
