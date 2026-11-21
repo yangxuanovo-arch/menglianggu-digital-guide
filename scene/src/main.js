@@ -278,6 +278,7 @@ function bindUI() {
   $('#info').addEventListener('click', () => $('#credits').classList.add('show'));
   $('#credits-close').addEventListener('click', () => $('#credits').classList.remove('show'));
   $('#credits').addEventListener('click', (e) => { if (e.target.id === 'credits') $('#credits').classList.remove('show'); });
+  $('#browse').addEventListener('click', () => $('#finish').classList.remove('show'));
   $('#replay').addEventListener('click', () => { state.auto = true; goTo(0); });
   $('#finish-credits').addEventListener('click', () => $('#credits').classList.add('show'));
   if (!mobile) $('#card').classList.add('open');
