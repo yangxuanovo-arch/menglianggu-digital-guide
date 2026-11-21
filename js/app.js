@@ -2,10 +2,11 @@
 'use strict';
 var G=window.GUIDE, $=function(s){return document.querySelector(s)};
 var LS_KEY='mlg_stamps_v1';
+var storageUnavailable=false;
 var stamps=loadStamps();
-function loadStamps(){try{var value=JSON.parse(localStorage.getItem(LS_KEY)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch(e){return {}}}
-function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(stamps))}catch(e){}}
-function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.style.opacity=0},1800);setTimeout(function(){d.remove()},2300)}
+function loadStamps(){try{var value=JSON.parse(localStorage.getItem(LS_KEY)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch(e){storageUnavailable=true;return {}}}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(stamps))}catch(e){toast('浏览器无法保存进度，当前页面仍可继续使用')}}
+function toast(t){$('#announcer').textContent=t;var d=document.createElement('div');d.className='toast';d.textContent=t;d.setAttribute('aria-hidden','true');document.body.appendChild(d);setTimeout(function(){d.style.opacity=0},1800);setTimeout(function(){d.remove()},2300)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
 /* ---------- WGS84 -> GCJ-02 (高德底图使用 GCJ-02 坐标) ---------- */
@@ -31,7 +32,7 @@ G.points.forEach(function(p){
   m.bindTooltip(p.no+' '+p.name,{direction:'right',offset:[14,-18],className:'poi-label'});
   m.on('click',function(){openPoint(p.id)});markers[p.id]=m;
 });
-function refreshIcons(){G.points.forEach(function(p){markers[p.id].setIcon(icon(p))})}
+function refreshIcons(){G.points.forEach(function(p){markers[p.id].setIcon(icon(p));var el=markers[p.id].getElement();if(!el)return;el.setAttribute('aria-label',p.no+' '+p.name+(stamps[p.id]?'，已集章':''));el.onkeydown=function(e){if(e.key===' '){e.preventDefault();openPoint(p.id)}}})}
 function separateMarkers(){var used=[];G.points.forEach(function(p){var a=map.latLngToContainerPoint(P(p)),x=a.x,y=a.y,o=[0,0];for(var n=0;n<12;n++){o=[n?Math.ceil(n/2)*54*(n%2?1:-1):0,0];x=a.x+o[0];if(used.every(function(b){return Math.hypot(x-b[0],y-b[1])>=52}))break}markerOffsets[p.id]=o;used.push([x,y])});refreshIcons()}
 map.on('zoomend moveend',separateMarkers);
 var bounds=L.latLngBounds(G.points.map(P));
@@ -44,7 +45,7 @@ hallControl.onAdd=function(){var b=L.DomUtil.create('button','btn-ghost');b.id='
 
 /* route */
 var R=G.route,rp=R.order.map(function(id){return P(byId(id))});
-R.legs.forEach(function(l){var a=P(byId(l.from)),b=P(byId(l.to)),transport=l.time==='乘车/景区交通';L.polyline([a,b],{color:transport?'#586268':'#b71c1c',weight:transport?2:5,opacity:.85,dashArray:transport?'3 8':'10 8',className:transport?'transport-line':'walk-line'}).addTo(routeLayer);L.marker([(a[0]+b[0])/2,(a[1]+b[1])/2],{interactive:false,icon:L.divIcon({className:'',html:'<span class="leg-label'+(transport?' transport-label':'')+'">'+esc(l.time)+'</span>',iconSize:null})}).addTo(routeLayer)});
+R.legs.forEach(function(l){var a=P(byId(l.from)),b=P(byId(l.to)),transport=l.time==='乘车/景区交通';L.polyline([a,b],{color:transport?'#586268':'#b71c1c',weight:transport?2:5,opacity:.85,dashArray:transport?'3 8':'10 8',className:transport?'transport-line':'walk-line'}).addTo(routeLayer);L.marker([(a[0]+b[0])/2,(a[1]+b[1])/2],{interactive:false,keyboard:false,icon:L.divIcon({className:'',html:'<span class="leg-label'+(transport?' transport-label':'')+'">'+esc(l.time)+'</span>',iconSize:null})}).addTo(routeLayer)});
 routeLayer.addTo(map);
 function updateMapLabels(){map.getContainer().classList.toggle('detail-labels',map.getZoom()>=17)}
 map.on('zoomend',updateMapLabels);updateMapLabels();
@@ -64,29 +65,38 @@ audio.preload='auto';
 var mouth=$('#mouth'),lip=$('#lip'),bubble=$('#bubble'),guide=$('#guide');
 function ensureCtx(){if(actx)return;try{actx=new (window.AudioContext||window.webkitAudioContext)();analyser=actx.createAnalyser();analyser.fftSize=512;srcNode=actx.createMediaElementSource(audio);srcNode.connect(analyser);analyser.connect(actx.destination);buf=new Uint8Array(analyser.fftSize)}catch(e){analyser=null}}
 function parseSrt(t){var out=[];t.replace(/\r/g,'').split(/\n\n+/).forEach(function(b){var m=b.match(/(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)\n([\s\S]*)/);if(m){var s=+m[1]*3600+ +m[2]*60+ +m[3]+ +m[4]/1000,e=+m[5]*3600+ +m[6]*60+ +m[7]+ +m[8]/1000;out.push({s:s,e:e,t:m[9].trim()})}});return out}
-var level=0;
+var level=0,reducedMotion=window.matchMedia?window.matchMedia('(prefers-reduced-motion: reduce)'):null;
 function loop(){
   var v=0;
   if(analyser&&!audio.paused){analyser.getByteTimeDomainData(buf);var sum=0;for(var i=0;i<buf.length;i++){var x=(buf[i]-128)/128;sum+=x*x}v=Math.min(1,Math.sqrt(sum/buf.length)*5)}
   else if(!audio.paused){v=0.35+0.35*Math.sin(Date.now()/70)}
   level=level*0.5+v*0.5;
+  if(reducedMotion&&reducedMotion.matches)level=0;
   mouth.setAttribute('ry',(1.5+level*9).toFixed(2));mouth.setAttribute('rx',(9-level*2).toFixed(2));lip.style.opacity=level>0.12?0:1;
   var t=audio.currentTime,c='';for(var j=0;j<cues.length;j++){if(t>=cues[j].s&&t<=cues[j].e+0.3){c=cues[j].t;break}}
   if(c&&bubble.textContent!==c)bubble.textContent=c;
-  raf=requestAnimationFrame(loop);
+  if(!audio.paused&&!document.hidden)raf=requestAnimationFrame(loop);
 }
 function speak(id,fallbackText,cb){
   ensureCtx();if(actx&&actx.state==='suspended')actx.resume();
   stopSpeak(true);playingId=id;onEnd=cb||null;guide.classList.remove('hidden');bubble.textContent=fallbackText?fallbackText.slice(0,40)+'…':'';$('#gPause').textContent='暂停';
   var version=speechVersion;subtitleRequest=window.AbortController?new AbortController():null;
-  fetch('audio/'+id+'.srt',subtitleRequest?{signal:subtitleRequest.signal}:{}).then(function(r){return r.ok?r.text():''}).then(function(t){if(playingId===id&&speechVersion===version)cues=parseSrt(t)}).catch(function(){});
+  function missingCaptions(){if(playingId===id&&speechVersion===version)toast('字幕暂不可用，可阅读点位正文或关于页讲解全文')}
+  fetch('audio/'+id+'.srt',subtitleRequest?{signal:subtitleRequest.signal}:{}).then(function(r){return r.ok?r.text():''}).then(function(t){if(playingId===id&&speechVersion===version){cues=parseSrt(t);if(!cues.length)missingCaptions()}}).catch(missingCaptions);
   audio.src='audio/'+id+'.mp3';audio.currentTime=0;
-  var pr=audio.play();if(pr&&pr.catch)pr.catch(function(){toast('请点击页面后重试播放')});
+  playAudio();
   cancelAnimationFrame(raf);loop();
 }
 function stopSpeak(keep){audio.pause();onEnd=null;playingId=null;cues=[];bubble.textContent='';speechVersion++;if(subtitleRequest){subtitleRequest.abort();subtitleRequest=null}if(!keep){guide.classList.add('hidden');cancelAnimationFrame(raf)}}
 audio.addEventListener('ended',function(){var f=onEnd;onEnd=null;var id=playingId;playingId=null;mouth.setAttribute('ry',1.5);lip.style.opacity=1;if(f)f(id);var status=$('#panelAudioStatus');if(status)status.textContent='讲解已完成，印章已保存'});
-$('#gPause').onclick=function(){if(audio.paused){audio.play();this.textContent='暂停'}else{audio.pause();this.textContent='继续'}};
+function playAudio(){var result;try{result=audio.play()}catch(e){toast('播放受限，请点击重试');$('#gPause').textContent='重试';return}if(result&&result.catch)result.catch(function(){toast('播放受限或网络异常，请点击重试');$('#gPause').textContent='重试'})}
+audio.addEventListener('playing',function(){cancelAnimationFrame(raf);$('#gPause').textContent='暂停';loop()});
+audio.addEventListener('pause',function(){cancelAnimationFrame(raf)});
+audio.addEventListener('ended',function(){cancelAnimationFrame(raf)});
+audio.addEventListener('waiting',function(){cancelAnimationFrame(raf);$('#announcer').textContent='讲解正在缓冲，请稍候'});
+audio.addEventListener('error',function(){cancelAnimationFrame(raf);$('#gPause').textContent='重试';toast('音频暂不可用，可点击重试或阅读点位全文')});
+document.addEventListener('visibilitychange',function(){cancelAnimationFrame(raf);if(!document.hidden&&!audio.paused)loop()});
+$('#gPause').onclick=function(){if(audio.paused){if(audio.error)audio.load();playAudio()}else{audio.pause();this.textContent='继续'}};
 $('#gStop').onclick=function(){stopTour();stopSpeak(false)};
 var minimise=document.createElement('button');minimise.id='gMin';minimise.type='button';minimise.textContent='收起';minimise.onclick=function(){var small=guide.classList.toggle('minimized');minimise.textContent=small?'展开':'收起';minimise.setAttribute('aria-expanded',String(!small))};$('.guide-ctrl').appendChild(minimise);
 
@@ -97,7 +107,7 @@ function openPoint(id,opts){
   stopSpeak(false);setTab('map');
   var p=byId(id);current=id;refreshIcons();closePanel();
   map.flyTo(P(p),Math.max(map.getZoom(),16),{duration:.8});
-  var h='<h2>'+p.no+'. '+esc(p.name)+'</h2><div class="meta">'+esc(p.type||'')+'</div>';
+  var h='<h2 id="pointTitle">'+p.no+'. '+esc(p.name)+'</h2><div class="meta">'+esc(p.type||'')+'</div>';
   h+='<div class="cover'+(p.img?' has-photo':'')+'">'+(p.img?'<img src="'+esc(p.img)+'" alt="'+esc(p.imgAlt||p.name)+'" onerror="this.parentNode.classList.remove(\'has-photo\');this.remove()">':'')+'<span style="position:relative">'+esc(p.tagline||G.site.name)+'</span></div>';
   if(p.imageCredit){var credit=p.imageCredit;h+='<div class="src photo-credit">图：'+esc(credit.author)+' / <a href="'+esc(credit.licenseUrl)+'" target="_blank" rel="noopener">'+esc(credit.license)+'</a> / 来源 <a href="'+esc(credit.source)+'" target="_blank" rel="noopener">Wikimedia Commons</a>（缩放压缩，封面裁切）</div>'}
   h+='<div class="actions"><button class="btn-primary" id="btnListen">▶ 听讲解（听完集章）</button><button class="btn-ghost" id="btnStamp">'+(stamps[id]?'✔ 已打卡':'现场定位打卡')+'</button></div>';
@@ -153,19 +163,19 @@ function stampPanel(){
   var n=G.points.filter(function(p){return stamps[p.id]}).length,tot=G.points.length;
   var h='<p>非现场可进入点位，选择“非现场打卡”，听完本点讲解即可获得印章；现场也可在300米内定位打卡。集齐全部印章并通过知识问答，可生成“红色研学证书”。</p>';
   h+='<div class="progress"><div style="width:'+(100*n/tot)+'%"></div></div><p style="text-align:center">已集 '+n+' / '+tot+' 枚'+(stamps.__quiz?' · 知识问答已通过':'')+'</p><div class="stamps">';
-  G.points.forEach(function(p){h+='<div class="stamp'+(stamps[p.id]?' on':'')+'" data-id="'+p.id+'"><b>★</b>'+esc(p.short||p.name)+'</div>'});
-  h+='<div class="stamp'+(stamps.__quiz?' on':'')+'" data-q="1"><b>✎</b>知识问答</div></div>';
-  if(n===tot&&stamps.__quiz){h+='<h3>领取红色研学证书</h3><input class="name" id="certName" placeholder="请输入你的姓名" maxlength="12"><button class="btn-primary" id="btnCert">生成证书</button><div id="certBox"></div>'}
+  G.points.forEach(function(p){h+='<button type="button" class="stamp'+(stamps[p.id]?' on':'')+'" aria-label="'+esc(p.name)+(stamps[p.id]?'，已集章':'，未集章')+'" data-id="'+p.id+'"><b aria-hidden="true">★</b>'+esc(p.short||p.name)+'</button>'});
+  h+='<button type="button" class="stamp'+(stamps.__quiz?' on':'')+'" data-q="1" aria-label="知识问答'+(stamps.__quiz?'，已通过':'，未通过')+'"><b aria-hidden="true">✎</b>知识问答</button></div>';
+  if(n===tot&&stamps.__quiz){h+='<h3>领取红色研学证书</h3><label for="certName">证书姓名（最多12字）</label><input class="name" id="certName" autocomplete="name" placeholder="请输入你的姓名" maxlength="12"><button class="btn-primary" id="btnCert">生成证书</button><div id="certBox" aria-live="polite"></div>'}
   else h+='<p style="color:#7a6a5f;font-size:13px">还差：'+G.points.filter(function(p){return!stamps[p.id]}).map(function(p){return p.short||p.name}).concat(stamps.__quiz?[]:['知识问答']).join('、')+'</p>';
   h+='<p><button class="btn-ghost" id="btnReset" style="font-size:12px;padding:4px 10px">重置打卡记录</button></p>';
   openPanel('研学打卡 · 集章',h);
   document.querySelectorAll('.stamp[data-id]').forEach(function(s){s.onclick=function(){openPoint(s.dataset.id)}});
   var q=document.querySelector('.stamp[data-q]');q.onclick=function(){setTab('quiz');quizPanel()};
-  $('#btnReset').onclick=function(){if(confirm('确定清空打卡记录？')){stamps={};save();refreshIcons();stampPanel()}};
+  $('#btnReset').onclick=function(){if(confirm('确定清空打卡记录？')){stamps={};quizState=null;try{localStorage.removeItem('mlg_quiz_session_v1')}catch(e){}save();refreshIcons();stampPanel()}};
   var bc=$('#btnCert');if(bc)bc.onclick=function(){var name=$('#certName').value.trim();if(!name){toast('请先填写姓名');$('#certName').focus();return}drawCert(name)};
 }
 async function drawCert(name){
-  try{await document.fonts.load('30px GuideCJK')}catch(e){}
+  try{if(window.FontFace&&document.fonts){if(!window.certificateFont){window.certificateFont=new FontFace('GuideCJK','url(vendor/fonts/certificate.woff2)');document.fonts.add(window.certificateFont)}await window.certificateFont.load();await document.fonts.load('30px GuideCJK')}}catch(e){}
   var c=document.createElement('canvas');c.width=1000;c.height=700;c.className='cert';var x=c.getContext('2d');
   x.fillStyle='#fbf7ef';x.fillRect(0,0,1000,700);x.strokeStyle='#b71c1c';x.lineWidth=14;x.strokeRect(24,24,952,652);x.lineWidth=2;x.strokeStyle='#e6b450';x.strokeRect(44,44,912,612);
   x.fillStyle='#b71c1c';x.textAlign='center';x.font='bold 56px GuideCJK,sans-serif';x.fillText('红色研学证书',500,150);
@@ -173,24 +183,30 @@ async function drawCert(name){
   x.font='26px GuideCJK,sans-serif';['你已通过“崮上丰碑”数字导览，','完成孟良崮战役纪念地全部 '+G.points.length+' 个点位的研学打卡','并通过红色知识问答。','传承红色基因，赓续沂蒙精神！'].forEach(function(t,i){x.fillText(t,500,310+i*48)});
   x.font='22px GuideCJK,sans-serif';x.fillText(new Date().toLocaleDateString('zh-CN'),760,600);x.fillText('崮上丰碑 · 数字导览',760,565);
   x.save();x.translate(250,560);x.rotate(-.15);x.strokeStyle='#d32f2f';x.lineWidth=5;x.beginPath();x.arc(0,0,70,0,2*PI);x.stroke();x.fillStyle='#d32f2f';x.font='bold 22px GuideCJK,sans-serif';x.fillText('孟良崮',0,-12);x.fillText('研学打卡',0,20);x.font='30px GuideCJK,sans-serif';x.fillText('★',0,52);x.restore();
-  var box=$('#certBox');box.innerHTML='';box.appendChild(c);var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='红色研学证书.png';a.textContent='保存证书图片';a.className='btn-ghost';a.style.display='inline-block';a.style.marginTop='8px';box.appendChild(a);
+  var box=$('#certBox');box.innerHTML='';var summary=document.createElement('p');summary.textContent=name+'同学已完成全部'+G.points.length+'点研学打卡并通过知识问答。此证书为学习体验凭证，非官方认证。';box.appendChild(summary);c.setAttribute('role','img');c.setAttribute('aria-label',summary.textContent);box.appendChild(c);var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='红色研学证书.png';a.textContent='保存证书图片';a.className='btn-ghost';a.style.display='inline-block';a.style.marginTop='8px';box.appendChild(a);
 }
 
+var quizState=null;
+function saveQuiz(){try{localStorage.setItem('mlg_quiz_session_v1',JSON.stringify(quizState))}catch(e){}}
+function newQuiz(){quizState=null;try{localStorage.removeItem('mlg_quiz_session_v1')}catch(e){}quizPanel()}
 function quizPanel(){
-  var qs=G.quiz.slice().sort(function(){return Math.random()-.5}).slice(0,Math.min(5,G.quiz.length)),ans=0,right=0;
+  if(!quizState){try{var saved=JSON.parse(localStorage.getItem('mlg_quiz_session_v1')||'null');if(saved&&Array.isArray(saved.ids)&&saved.ids.length===Math.min(5,G.quiz.length)&&Array.isArray(saved.answers)&&saved.answers.length===saved.ids.length&&saved.ids.every(function(id,i){return Number.isInteger(id)&&id>=0&&id<G.quiz.length&&saved.ids.indexOf(id)===i})&&saved.answers.every(function(a){return Number.isInteger(a)&&a>=-1&&a<4}))quizState=saved}catch(e){}}
+  if(!quizState){quizState={ids:G.quiz.map(function(q,i){return i}).sort(function(){return Math.random()-.5}).slice(0,Math.min(5,G.quiz.length)),answers:[]};quizState.answers=quizState.ids.map(function(){return -1});saveQuiz()}
+  var qs=quizState.ids.map(function(id){return G.quiz[id]}),ans=0,right=0;
   var h='<p>随机抽取 '+qs.length+' 题，答对 '+Math.ceil(qs.length*0.6)+' 题及以上即获得“知识问答”印章。</p>';
-  qs.forEach(function(q,i){h+='<div class="q" data-i="'+i+'"><b>'+(i+1)+'. '+esc(q.q)+'</b>'+q.opts.map(function(o,j){return'<button class="opt" data-j="'+j+'">'+'ABCD'[j]+'. '+esc(o)+'</button>'}).join('')+'<div class="exp hidden"></div></div>'});
-  h+='<div id="quizRes"></div>';
+  qs.forEach(function(q,i){h+='<div class="q" data-i="'+i+'"><b>'+(i+1)+'. '+esc(q.q)+'</b>'+q.opts.map(function(o,j){return'<button class="opt" data-j="'+j+'">'+'ABCD'[j]+'. '+esc(o)+'</button>'}).join('')+'<div class="exp hidden" aria-live="polite"></div></div>'});
+  h+='<div id="quizRes" role="status"></div>';
   openPanel('红色知识问答',h);
-  document.querySelectorAll('.q').forEach(function(d){var q=qs[+d.dataset.i],done=false;d.querySelectorAll('.opt').forEach(function(b){b.onclick=function(){if(done)return;done=true;ans++;var j=+b.dataset.j;if(j===q.a){b.classList.add('right');right++}else{b.classList.add('wrong');d.querySelectorAll('.opt')[q.a].classList.add('right')}var e=d.querySelector('.exp');e.textContent='解析：'+q.exp;e.classList.remove('hidden');
-    if(ans===qs.length){var pass=right>=Math.ceil(qs.length*0.6);if(pass&&!stamps.__quiz){stamps.__quiz=Date.now();save()}$('#quizRes').innerHTML='<div class="facts">得分 '+right+' / '+qs.length+'。'+(pass?'恭喜通过，获得“知识问答”印章！':'再接再厉，可以再试一次。')+'</div><p><button class="btn-primary" id="qAgain">再来一组</button> <button class="btn-ghost" id="qStamp">查看集章</button></p>';$('#qAgain').onclick=quizPanel;$('#qStamp').onclick=function(){setTab('stamps');stampPanel()};$('#quizRes').scrollIntoView({behavior:'smooth'})}}})});
+  document.querySelectorAll('.q').forEach(function(d){var q=qs[+d.dataset.i],done=false;d.querySelectorAll('.opt').forEach(function(b){b.onclick=function(){if(done)return;done=true;ans++;var j=+b.dataset.j;quizState.answers[+d.dataset.i]=j;saveQuiz();if(j===q.a){b.classList.add('right');right++}else{b.classList.add('wrong');d.querySelectorAll('.opt')[q.a].classList.add('right')}var e=d.querySelector('.exp');e.textContent=(j===q.a?'回答正确。':'回答错误，正确答案是'+q.opts[q.a]+'。')+'解析：'+q.exp;e.classList.remove('hidden');
+    if(ans===qs.length){var pass=right>=Math.ceil(qs.length*0.6);if(pass&&!stamps.__quiz){stamps.__quiz=Date.now();save()}$('#quizRes').innerHTML='<div class="facts">得分 '+right+' / '+qs.length+'。'+(pass?'恭喜通过，获得“知识问答”印章！':'再接再厉，可以再试一次。')+'</div><p><button class="btn-primary" id="qAgain">再来一组</button> <button class="btn-ghost" id="qStamp">查看集章</button></p>';$('#qAgain').onclick=newQuiz;$('#qStamp').onclick=function(){setTab('stamps');stampPanel()};$('#quizRes').scrollIntoView({behavior:'smooth'})}}})});
+  document.querySelectorAll('.q').forEach(function(d){var answer=quizState.answers[+d.dataset.i];if(answer>=0)d.querySelectorAll('.opt')[answer].click()});
 }
 function aboutPanel(){
   var S=G.site,h='<h3 style="color:#b71c1c;margin-top:0">'+esc(S.name)+'</h3><p>'+esc(S.intro)+'</p>';
   if(S.facts)h+='<div class="facts">'+S.facts.map(esc).join('<br>')+'</div>';
   h+='<p><button class="btn-ghost" id="aCtx">查看区位与交通</button></p>';
   h+='<h3>战役概况</h3>'+G.battle.map(function(t){return'<p class="text" style="text-indent:2em">'+esc(t)+'</p>'}).join('')+srcHtml(G.battleSources);
-  h+='<h3>关于本作品</h3><p>'+esc(G.about.work)+'</p>';
+  h+='<h3>关于本作品</h3><p>'+esc(G.about.work)+'</p><details><summary>开场与结束讲解全文</summary><p>'+esc(G.narration.intro)+'</p><p>'+esc(G.narration.outro)+'</p></details>';
   if(G.about.team&&!/[【】]/.test(G.about.team))h+='<p style="font-size:13px">'+esc(G.about.team)+'</p>';
   h+='<h3>素材与 AI 使用声明</h3><p style="font-size:13px">'+esc(G.about.ai)+'</p>';
   var photos=G.points.filter(function(p){return p.imageCredit});if(photos.length){h+='<h3>实景图片署名</h3>';photos.forEach(function(p){var c=p.imageCredit;h+='<p class="src">'+esc(p.name)+'：'+esc(c.author)+' / <a href="'+esc(c.licenseUrl)+'" target="_blank" rel="noopener">'+esc(c.license)+'</a> / <a href="'+esc(c.source)+'" target="_blank" rel="noopener">Wikimedia Commons</a>。'+esc(c.changes)+'</p>'})}
@@ -202,4 +218,29 @@ $('#introSub').textContent=G.site.name+' · '+G.site.addressShort;
 $('#introStart').onclick=function(){$('#intro').classList.add('hidden');ensureCtx();toast('点击地图上的红色点位开始')};
 $('#introTour').onclick=function(){$('#intro').classList.add('hidden');startTour()};
 window.__guide={openPoint:openPoint,startTour:startTour,showContext:showContext,stampPanel:stampPanel,quizPanel:quizPanel,routePanel:routePanel};
+var announcer=document.createElement('div');announcer.id='announcer';announcer.className='sr-only';announcer.setAttribute('role','status');announcer.setAttribute('aria-live','polite');document.body.appendChild(announcer);
+var dialogs=[$('#intro'),$('#sheet'),$('#panel')],activeDialog=null,returnFocus=null,disabledFocus=[];
+dialogs.forEach(function(d,i){d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-labelledby',['introTitle','pointTitle','panelTitle'][i]);d.tabIndex=-1});
+function focusable(root){return Array.prototype.filter.call(root.querySelectorAll('button,a[href],input,[tabindex]'),function(e){return e.tabIndex>=0&&!e.disabled&&e.getClientRects().length})}
+function syncDialog(){
+  var next=dialogs.filter(function(d){return !d.classList.contains('hidden')})[0]||null;
+  if(next===activeDialog)return;
+  disabledFocus.forEach(function(item){if(item[1]===null)item[0].removeAttribute('tabindex');else item[0].setAttribute('tabindex',item[1])});disabledFocus=[];
+  Array.prototype.forEach.call(document.body.children,function(e){if(e.getAttribute('data-modal-hidden')==='1'){e.removeAttribute('aria-hidden');e.removeAttribute('data-modal-hidden')}});
+  if(next){
+    if(!activeDialog)returnFocus=document.activeElement;activeDialog=next;(focusable(next)[0]||next).focus();
+    Array.prototype.forEach.call(document.body.children,function(e){if(e!==next&&e.id!=='announcer'&&e.id!=='guide'&&e.tagName!=='SCRIPT'&&!e.classList.contains('toast')){e.setAttribute('aria-hidden','true');e.setAttribute('data-modal-hidden','1');focusable(e).forEach(function(f){disabledFocus.push([f,f.getAttribute('tabindex')]);f.tabIndex=-1})}});
+  }else{
+    activeDialog=null;if(returnFocus&&returnFocus!==document.body&&returnFocus.getClientRects().length&&document.documentElement.contains(returnFocus))returnFocus.focus();else $('#hallShortcut').focus();returnFocus=null;
+  }
+}
+var dialogObserver=new MutationObserver(syncDialog);dialogs.forEach(function(d){dialogObserver.observe(d,{attributes:true,attributeFilter:['class']})});
+document.addEventListener('keydown',function(e){if(!activeDialog)return;if(e.key==='Escape'){e.preventDefault();if(activeDialog.id==='intro')$('#introStart').click();else if(activeDialog.id==='sheet')$('#sheetClose').click();else $('#panelClose').click();return}if(e.key==='Tab'){var list=focusable(activeDialog);if(activeDialog.id==='sheet'&&!guide.classList.contains('hidden'))list=list.concat(focusable(guide));var index=list.indexOf(document.activeElement);if(!list.length){e.preventDefault();activeDialog.focus()}else if(e.shiftKey&&index<=0){e.preventDefault();list[list.length-1].focus()}else if(!e.shiftKey&&(index===list.length-1||index<0)){e.preventDefault();list[0].focus()}}});
+document.addEventListener('focusin',function(e){if(activeDialog&&!activeDialog.contains(e.target)&&!(activeDialog.id==='sheet'&&guide.contains(e.target)))(focusable(activeDialog)[0]||activeDialog).focus()});
+syncDialog();
+var network=document.createElement('button');network.id='networkStatus';network.className='network-status';network.onclick=routePanel;document.body.appendChild(network);
+function networkState(){network.hidden=navigator.onLine;network.textContent='离线：点此查看点位与文字导览（地图需联网）';announcer.textContent=navigator.onLine?'网络已连接':'当前离线，可使用已缓存图文和讲解'}
+window.addEventListener('online',networkState);window.addEventListener('offline',networkState);networkState();
+if(storageUnavailable)toast('浏览器存储不可用或进度损坏，当前页面仍可继续使用');
+if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{scope:'./',updateViaCache:'none'}).then(function(reg){return navigator.serviceWorker.ready}).then(function(){announcer.textContent='离线导览已就绪，图文与讲解已缓存'}).catch(function(){announcer.textContent='离线缓存暂不可用，请保持联网使用'})});
 })();

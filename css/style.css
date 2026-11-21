@@ -1,14 +1,13 @@
-@font-face{font-family:GuideCJK;src:url('../vendor/fonts/NotoSansCJKsc-Regular.otf') format('opentype');font-display:swap}
 :root{--red:#b71c1c;--red2:#d32f2f;--gold:#e6b450;--ink:#2a1f1a;--paper:#fbf7ef;--muted:#7a6a5f;--tab:58px;--top:56px}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;font-family:"PingFang SC","Microsoft YaHei",GuideCJK,"Noto Sans CJK SC",sans-serif;color:var(--ink);background:#eee;overflow:hidden}
+html,body{margin:0;height:100%;font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;color:var(--ink);background:#eee;overflow:hidden}
 button{font:inherit;cursor:pointer}
 #topbar{position:fixed;top:0;left:0;right:0;height:var(--top);z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:linear-gradient(90deg,#8e1414,#c62828);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .brand{display:flex;align-items:center;gap:10px}.brand .star{color:var(--gold);font-size:26px}
 .brand h1{margin:0;font-size:19px;letter-spacing:3px}.brand p{margin:0;font-size:11px;opacity:.85;letter-spacing:1px}
 .top-actions button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:16px;padding:5px 12px;margin-left:6px}
 #map{position:fixed;top:var(--top);bottom:var(--tab);left:0;right:0;z-index:1}
-.leaflet-container{font-family:GuideCJK,"Microsoft YaHei",sans-serif}
+.leaflet-container{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}
 #tabbar{position:fixed;bottom:0;left:0;right:0;height:var(--tab);z-index:1000;display:flex;background:#fff;border-top:1px solid #ddd}
 #tabbar button{flex:1;border:0;background:none;color:var(--muted);font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 #tabbar button i{font-style:normal;font-size:18px}#tabbar button.active{color:var(--red);font-weight:600}
@@ -85,3 +84,17 @@ input.name{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;font:i
 @media(max-width:359px){.brand p{display:none}.brand h1{font-size:17px;letter-spacing:2px}.top-actions button{padding:5px 9px}}
 @media(max-height:500px) and (orientation:landscape){.guide .avatar-wrap{display:none}.guide .bubble{max-height:65px}.sheet{max-height:70vh}.intro-card{padding:12px 18px}}
 .legend{background:#fff;padding:6px 8px;border-radius:6px;font-size:12px;line-height:1.6;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+:focus-visible{outline:3px solid #174b89;outline-offset:3px}
+.poi.done{background:#806014}
+.stamp.on{color:var(--red)}
+.stamp{color:#67513d;background:transparent;min-height:6rem}
+.brand p,.leg-label,.src,.meta,.q .exp,.facts,.cover,.guide-name,.voice-label{font-size:.875rem}
+.sheet .meta,#tabbar button,.leg small,.poi-label,.city,.intro-sub,.legend{font-size:.875rem}
+.intro{top:0;right:0;bottom:0;left:0}
+.cover img{top:0;left:0}
+.bubble{max-width:360px;max-width:min(360px,60vw)}
+.brand,.actions,.leg{gap:0}.brand>*+*,.leg>*+*{margin-left:10px}.actions>*{margin:4px}
+.network-status{position:fixed;top:56px;left:50%;transform:translateX(-50%);z-index:1300;background:#fff;color:#6b1717;border:1px solid #6b1717;border-radius:4px;font-size:.875rem;max-width:75%;padding:4px}
+@media(max-width:899px){.bubble{max-width:none;font-size:.875rem}.sheet .meta,#tabbar button,.q .exp{font-size:.875rem}.guide-ctrl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));flex:0 0 94px}.voice-label{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
