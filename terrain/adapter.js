@@ -8,6 +8,7 @@
   var dialog,frame,opener;
   function close(){if(!dialog)return;frame.contentWindow.postMessage({type:'guide:terrain-pause'},location.origin);dialog.close();frame.src='about:blank';opener&&opener.focus();}
   function open(){
+    if(typeof HTMLDialogElement==='undefined'||typeof HTMLDialogElement.prototype.showModal!=='function'){location.assign(new URL('index.html',base));return;}
     opener=document.activeElement;
     if(!dialog){
       dialog=document.createElement('dialog');dialog.setAttribute('aria-label','孟良崮三维战场沙盘');
