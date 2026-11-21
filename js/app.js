@@ -33,11 +33,36 @@ G.points.forEach(function(p){
   m.on('click',function(){openPoint(p.id)});markers[p.id]=m;
 });
 function refreshIcons(){G.points.forEach(function(p){markers[p.id].setIcon(icon(p));var el=markers[p.id].getElement();if(!el)return;el.setAttribute('aria-label',p.no+' '+p.name+(stamps[p.id]?'，已集章':''));el.onkeydown=function(e){if(e.key===' '){e.preventDefault();openPoint(p.id)}}})}
-function separateMarkers(){var used=[];G.points.forEach(function(p){var a=map.latLngToContainerPoint(P(p)),x=a.x,y=a.y,o=[0,0];for(var n=0;n<12;n++){o=[n?Math.ceil(n/2)*54*(n%2?1:-1):0,0];x=a.x+o[0];if(used.every(function(b){return Math.hypot(x-b[0],y-b[1])>=52}))break}markerOffsets[p.id]=o;used.push([x,y])});refreshIcons()}
-map.on('zoomend moveend',separateMarkers);
+function layoutMarkerAnchors(anchors,size,obstacles){
+  var used=[],steps=[];
+  for(var dx=-7;dx<=7;dx++)for(var dy=-7;dy<=7;dy++)steps.push([dx*46,dy*46]);
+  steps.sort(function(a,b){return a[0]*a[0]+a[1]*a[1]*1.15-b[0]*b[0]-b[1]*b[1]*1.15});
+  return anchors.map(function(a){
+    // A pin extends above its geographic tip: include partially visible pins,
+    // but do not pull fully offscreen points into a panned view.
+    if(a.x< -22||a.x>size.x+22||a.y< -4||a.y>size.y+38)return[0,0];
+    var chosen=[Math.max(22,Math.min(size.x-22,a.x)),Math.max(42,Math.min(size.y-10,a.y))];
+    for(var i=0;i<steps.length;i++){
+      var x=Math.max(22,Math.min(size.x-22,a.x+steps[i][0])),y=Math.max(42,Math.min(size.y-10,a.y+steps[i][1]));
+      if(used.some(function(b){return Math.hypot(x-b[0],y-b[1])<44}))continue;
+      if(obstacles.some(function(b){return x+20>b.left&&x-20<b.right&&y+4>b.top&&y-38<b.bottom}))continue;
+      chosen=[x,y];break;
+    }
+    used.push(chosen);return[chosen[0]-a.x,chosen[1]-a.y];
+  });
+}
+function separateMarkers(){
+  var rect=map.getContainer().getBoundingClientRect(),controls=Array.from(map.getContainer().querySelectorAll('.leaflet-control')),caption=document.querySelector('.map-frame>span');
+  if(caption)controls.push(caption);
+  var obstacles=controls.map(function(el){var b=el.getBoundingClientRect();return{left:b.left-rect.left-3,right:b.right-rect.left+3,top:b.top-rect.top-3,bottom:b.bottom-rect.top+3,width:b.width,height:b.height}}).filter(function(b){return b.width&&b.height});
+  var offsets=layoutMarkerAnchors(G.points.map(function(p){return map.latLngToContainerPoint(P(p))}),map.getSize(),obstacles);
+  G.points.forEach(function(p,i){markerOffsets[p.id]=offsets[i]});refreshIcons();
+}
+map.on('zoomend moveend resize',separateMarkers);
 var bounds=L.latLngBounds(G.points.map(P));
 var mountainBounds=L.latLngBounds(G.points.filter(function(p){return p.id!=='hall'}).map(P));
-function home(){map.fitBounds(mountainBounds,{padding:[60,60],maxZoom:16})}
+function mapPadding(){var size=map.getSize();return[Math.min(50,size.x*.12),Math.min(50,size.y*.18)]}
+function home(){map.fitBounds(mountainBounds,{padding:mapPadding(),maxZoom:16})}
 home();
 separateMarkers();
 var hallControl=L.control({position:'bottomleft'});
@@ -50,7 +75,7 @@ routeLayer.addTo(map);
 function updateMapLabels(){map.getContainer().classList.toggle('detail-labels',map.getZoom()>=17)}
 map.on('zoomend',updateMapLabels);updateMapLabels();
 var overview=L.control({position:'topright'});
-overview.onAdd=function(){var b=L.DomUtil.create('button','btn-ghost');b.type='button';b.textContent='全区概览';L.DomEvent.disableClickPropagation(b);b.onclick=function(){map.fitBounds(bounds,{padding:[50,50]})};return b};overview.addTo(map);
+overview.onAdd=function(){var b=L.DomUtil.create('button','btn-ghost');b.type='button';b.textContent='全区概览';L.DomEvent.disableClickPropagation(b);b.onclick=function(){map.fitBounds(bounds,{padding:mapPadding()})};return b};overview.addTo(map);
 /* context */
 var site=P(G.site);
 (G.context||[]).forEach(function(c){var ll=P(c);L.marker(ll,{icon:L.divIcon({className:'',html:'<span class="city">'+esc(c.name)+'</span>',iconSize:null})}).addTo(ctxLayer).bindPopup('<b>'+esc(c.name)+'</b><br>'+esc(c.desc));L.polyline([site,ll],{color:'#37474f',weight:2,dashArray:'4 6'}).addTo(ctxLayer)});
@@ -79,7 +104,7 @@ function loop(){
 }
 function speak(id,fallbackText,cb){
   ensureCtx();if(actx&&actx.state==='suspended')actx.resume();
-  stopSpeak(true);playingId=id;onEnd=cb||null;guide.classList.remove('hidden');bubble.textContent=fallbackText?fallbackText.slice(0,40)+'…':'';$('#gPause').textContent='暂停';
+  stopSpeak(true);playingId=id;onEnd=cb||null;guide.classList.remove('hidden');map.invalidateSize({pan:false});bubble.textContent=fallbackText?fallbackText.slice(0,40)+'…':'';$('#gPause').textContent='暂停';
   var version=speechVersion;subtitleRequest=window.AbortController?new AbortController():null;
   function missingCaptions(){if(playingId===id&&speechVersion===version)toast('字幕暂不可用，可阅读点位正文或关于页讲解全文')}
   fetch('audio/'+id+'.srt',subtitleRequest?{signal:subtitleRequest.signal}:{}).then(function(r){return r.ok?r.text():''}).then(function(t){if(playingId===id&&speechVersion===version){cues=parseSrt(t);if(!cues.length)missingCaptions()}}).catch(missingCaptions);
@@ -87,7 +112,7 @@ function speak(id,fallbackText,cb){
   playAudio();
   cancelAnimationFrame(raf);loop();
 }
-function stopSpeak(keep){audio.pause();onEnd=null;playingId=null;cues=[];bubble.textContent='';speechVersion++;if(subtitleRequest){subtitleRequest.abort();subtitleRequest=null}if(!keep){guide.classList.add('hidden');cancelAnimationFrame(raf)}}
+function stopSpeak(keep){audio.pause();onEnd=null;playingId=null;cues=[];bubble.textContent='';speechVersion++;if(subtitleRequest){subtitleRequest.abort();subtitleRequest=null}if(!keep){guide.classList.add('hidden');map.invalidateSize({pan:false});cancelAnimationFrame(raf)}}
 audio.addEventListener('ended',function(){var f=onEnd;onEnd=null;var id=playingId;playingId=null;mouth.setAttribute('ry',1.5);lip.style.opacity=1;if(f)f(id);var status=$('#panelAudioStatus');if(status)status.textContent='讲解已完成，印章已保存'});
 function playAudio(){var result;try{result=audio.play()}catch(e){toast('播放受限，请点击重试');$('#gPause').textContent='重试';return}if(result&&result.catch)result.catch(function(){toast('播放受限或网络异常，请点击重试');$('#gPause').textContent='重试'})}
 audio.addEventListener('playing',function(){cancelAnimationFrame(raf);$('#gPause').textContent='暂停';loop()});
@@ -98,7 +123,7 @@ audio.addEventListener('error',function(){cancelAnimationFrame(raf);$('#gPause')
 document.addEventListener('visibilitychange',function(){cancelAnimationFrame(raf);if(!document.hidden&&!audio.paused)loop()});
 $('#gPause').onclick=function(){if(audio.paused){if(audio.error)audio.load();playAudio()}else{audio.pause();this.textContent='继续'}};
 $('#gStop').onclick=function(){stopTour();stopSpeak(false)};
-var minimise=document.createElement('button');minimise.id='gMin';minimise.type='button';minimise.textContent='收起';minimise.onclick=function(){var small=guide.classList.toggle('minimized');minimise.textContent=small?'展开':'收起';minimise.setAttribute('aria-expanded',String(!small))};$('.guide-ctrl').appendChild(minimise);
+var minimise=document.createElement('button');minimise.id='gMin';minimise.type='button';minimise.textContent='收起';minimise.onclick=function(){var small=guide.classList.toggle('minimized');map.invalidateSize({pan:false});minimise.textContent=small?'展开':'收起';minimise.setAttribute('aria-expanded',String(!small))};$('.guide-ctrl').appendChild(minimise);
 
 /* ---------- point sheet ---------- */
 function srcHtml(s){if(!s||!s.length)return'';return'<div class="src">资料来源：'+s.map(function(x,i){return'['+(i+1)+'] <a href="'+esc(x.u)+'" target="_blank" rel="noopener">'+esc(x.t)+'</a>'}).join('；')+'</div>'}
@@ -137,8 +162,8 @@ function closeSheet(){stopTour();$('#sheet').classList.add('hidden');guide.class
 $('#sheetClose').onclick=function(){closeSheet();setTab('map')};
 
 /* ---------- panels ---------- */
-function openPanel(t,h){stopTour();guide.classList.add('hidden');if(playingId&&!audio.paused)h='<p id="panelAudioStatus">AI合成语音 · 正在讲解：'+esc(byId(playingId)?byId(playingId).name:G.site.name)+' <button class="btn-ghost" id="panelAudioStop">停止讲解</button></p>'+h;$('#panelTitle').textContent=t;$('#panelBody').innerHTML=h;$('#panel').classList.remove('hidden');$('#panel').scrollTop=0;var b=$('#ctxBack');if(b)b.onclick=function(){closePanel();setTab('map')};var stop=$('#panelAudioStop');if(stop)stop.onclick=function(){stopSpeak(false);$('#panelAudioStatus').textContent='讲解已停止；听完本点讲解可集章'}}
-function closePanel(){$('#panel').classList.add('hidden');if(playingId)guide.classList.remove('hidden');if(map.hasLayer(ctxLayer)){map.removeLayer(ctxLayer);home()}}
+function openPanel(t,h){stopTour();guide.classList.add('hidden');map.invalidateSize({pan:false});if(playingId&&!audio.paused)h='<p id="panelAudioStatus">AI合成语音 · 正在讲解：'+esc(byId(playingId)?byId(playingId).name:G.site.name)+' <button class="btn-ghost" id="panelAudioStop">停止讲解</button></p>'+h;$('#panelTitle').textContent=t;$('#panelBody').innerHTML=h;$('#panel').classList.remove('hidden');$('#panel').scrollTop=0;var b=$('#ctxBack');if(b)b.onclick=function(){closePanel();setTab('map')};var stop=$('#panelAudioStop');if(stop)stop.onclick=function(){stopSpeak(false);$('#panelAudioStatus').textContent='讲解已停止；听完本点讲解可集章'}}
+function closePanel(){$('#panel').classList.add('hidden');if(playingId)guide.classList.remove('hidden');map.invalidateSize({pan:false});if(map.hasLayer(ctxLayer)){map.removeLayer(ctxLayer);home()}}
 $('#panelClose').onclick=function(){closePanel();setTab('map')};
 function closeAll(){closeSheet();closePanel()}
 function setTab(t){document.querySelectorAll('#tabbar button').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t)})}
@@ -156,7 +181,7 @@ function routePanel(){
 }
 var touring=false,tourIdx=0,tourTimer=null;
 function stopTour(){var active=touring;touring=false;clearTimeout(tourTimer);tourTimer=null;if(active)stopSpeak(false)}
-function startTour(){closeAll();touring=true;tourIdx=0;speak('intro',G.narration.intro,function(){if(touring)tourNext()});map.flyToBounds(bounds,{padding:[50,50]})}
+function startTour(){closeAll();touring=true;tourIdx=0;speak('intro',G.narration.intro,function(){if(touring)tourNext()});map.flyToBounds(bounds,{padding:mapPadding()})}
 function tourNext(){if(!touring)return;if(tourIdx>=R.order.length){touring=false;closeSheet();home();speak('outro',G.narration.outro,function(){stopSpeak(false);stampPanel();setTab('stamps')});return}openPoint(R.order[tourIdx++],{autoplay:true})}
 
 function stampPanel(){
