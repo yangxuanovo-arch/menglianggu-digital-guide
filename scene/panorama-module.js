@@ -3,12 +3,12 @@
    open() 以全屏 iframe 打开 scene/index.html。 */
 (function () {
   var sceneUrl = new URL('index.html?embed=1', (document.currentScript && document.currentScript.src) || location.href).href;
-  var layer = null;
+  var layer = null, frame = null;
 
   function close() {
     if (!layer) return;
     layer.remove();
-    layer = null;
+    layer = frame = null;
     document.documentElement.style.overflow = '';
     document.dispatchEvent(new CustomEvent('guide:module-closed', { detail: { id: 'panorama' } }));
   }
@@ -19,7 +19,7 @@
     layer.setAttribute('role', 'dialog');
     layer.setAttribute('aria-label', '孟良崮战役纪念碑场景重现');
     layer.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:#3e0608';
-    var frame = document.createElement('iframe');
+    frame = document.createElement('iframe');
     frame.src = sceneUrl;
     frame.title = '孟良崮战役纪念碑场景重现';
     frame.allow = 'autoplay; fullscreen';
@@ -31,6 +31,7 @@
   }
 
   addEventListener('message', function (e) {
+    if (!frame || e.source !== frame.contentWindow) return;
     if (e.data && e.data.type === 'guide:close-module' && e.data.id === 'panorama') close();
   });
   addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
