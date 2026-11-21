@@ -17,7 +17,6 @@
     <header class="topbar">
       <a class="back" href="../index.html" id="back" aria-label="返回数字导览"><span>←</span><span class="back-copy">崮上丰碑</span></a>
       <div class="top-title">孟良崮战役 <span>/</span> 三维地形沙盘</div>
-      <button id="sources-open" class="plain-button">史料与数据 <span>↗</span></button>
     </header>
 
     <aside class="story">
@@ -55,7 +54,7 @@
       <div class="timeline"><div class="timeline-rail"><div id="timeline-progress"></div></div><div id="phase-buttons"></div></div>
       <label class="scrub-label" for="scrub">拖动回看战役进程<input type="range" id="scrub" min="0" max="4" step="0.005" value="0" aria-label="战役时间轴"></label>
     </section>
-    <footer><span>SRTM / USGS · Mapzen Terrain Tiles</span><button id="disclosure">AI 辅助制作声明</button></footer>
+    <footer><span>SRTM / USGS · Mapzen Terrain Tiles</span></footer>
     <div id="loading" role="status"><div class="loader-mark">山<span>河</span></div><p id="loading-copy">正在读取真实高程</p><div class="load-track"><i></i></div></div>
     <div id="fallback" hidden><h2>三维视图暂不可用</h2><p id="fallback-reason">请尝试支持 WebGL 2 的浏览器。</p><p>仍可使用下方时间轴阅读战役进程，并查阅史料与数据。</p><button id="retry">重新加载</button></div>
     <div id="unit-card" class="unit-card" hidden><button id="unit-close" aria-label="关闭部队详情">×</button><small id="unit-role"></small><h3 id="unit-name"></h3><p id="unit-detail"></p><button id="unit-source" class="source-link">查看史料 ↗</button><span class="unit-warning">位置与轨迹为教学示意</span></div>
