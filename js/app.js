@@ -85,45 +85,53 @@ function showContext(){closeAll();ctxLayer.addTo(map);var b=L.latLngBounds([site
 function contextHtml(){var h='<p><b>'+esc(G.site.name)+'</b><br>'+esc(G.site.address)+'</p><p>'+esc(G.site.location)+'</p>';(G.context||[]).forEach(function(c){h+='<div class="leg"><div class="no">●</div><div><b>'+esc(c.name)+'</b><br><small>'+esc(c.desc)+'</small></div></div>'});h+=srcHtml(G.site.sources);h+='<p><button class="btn-ghost" id="ctxBack">返回景区导览</button></p>';return h}
 
 /* ---------- audio + digital human ---------- */
-var audio=new Audio(),actx,analyser,srcNode,buf,cues=[],raf,onEnd=null,playingId=null,subtitleRequest=null,speechVersion=0;
-audio.preload='auto';
-var mouth=$('#mouth'),lip=$('#lip'),bubble=$('#bubble'),guide=$('#guide');
-function ensureCtx(){if(actx)return;try{actx=new (window.AudioContext||window.webkitAudioContext)();analyser=actx.createAnalyser();analyser.fftSize=512;srcNode=actx.createMediaElementSource(audio);srcNode.connect(analyser);analyser.connect(actx.destination);buf=new Uint8Array(analyser.fftSize)}catch(e){analyser=null}}
+var video=$('#avatar'),fallbackAudio=new Audio(),audio=video,cues=[],raf,onEnd=null,playingId=null,subtitleRequest=null,speechVersion=0,wantPlay=false;
+fallbackAudio.preload='none';
+var bubble=$('#bubble'),guide=$('#guide');
 function parseSrt(t){var out=[];t.replace(/\r/g,'').split(/\n\n+/).forEach(function(b){var m=b.match(/(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)\n([\s\S]*)/);if(m){var s=+m[1]*3600+ +m[2]*60+ +m[3]+ +m[4]/1000,e=+m[5]*3600+ +m[6]*60+ +m[7]+ +m[8]/1000;out.push({s:s,e:e,t:m[9].trim()})}});return out}
-var level=0,reducedMotion=window.matchMedia?window.matchMedia('(prefers-reduced-motion: reduce)'):null;
 function loop(){
-  var v=0;
-  if(analyser&&!audio.paused){analyser.getByteTimeDomainData(buf);var sum=0;for(var i=0;i<buf.length;i++){var x=(buf[i]-128)/128;sum+=x*x}v=Math.min(1,Math.sqrt(sum/buf.length)*5)}
-  else if(!audio.paused){v=0.35+0.35*Math.sin(Date.now()/70)}
-  level=level*0.5+v*0.5;
-  if(reducedMotion&&reducedMotion.matches)level=0;
-  mouth.setAttribute('ry',(1.5+level*4.5).toFixed(2));mouth.setAttribute('rx',(9-level*1.5).toFixed(2));lip.style.opacity=level>0.12?0:1;
   var t=audio.currentTime,c='';for(var j=0;j<cues.length;j++){if(t>=cues[j].s&&t<=cues[j].e+0.3){c=cues[j].t;break}}
   if(c&&bubble.textContent!==c)bubble.textContent=c;
   if(!audio.paused&&!document.hidden)raf=requestAnimationFrame(loop);
 }
 function speak(id,fallbackText,cb){
-  ensureCtx();if(actx&&actx.state==='suspended')actx.resume();
   stopSpeak(true);playingId=id;onEnd=cb||null;guide.classList.remove('hidden');map.invalidateSize({pan:false});bubble.textContent=fallbackText?fallbackText.slice(0,40)+'…':'';$('#gPause').textContent='暂停';
   var version=speechVersion;subtitleRequest=window.AbortController?new AbortController():null;
   function missingCaptions(){if(playingId===id&&speechVersion===version)toast('字幕暂不可用，可阅读点位正文或关于页讲解全文')}
   fetch('audio/'+id+'.srt',subtitleRequest?{signal:subtitleRequest.signal}:{}).then(function(r){return r.ok?r.text():''}).then(function(t){if(playingId===id&&speechVersion===version){cues=parseSrt(t);if(!cues.length)missingCaptions()}}).catch(missingCaptions);
-  audio.src='audio/'+id+'.mp3';audio.currentTime=0;
+  audio=video;video.src='video/narrator/'+id+'.mp4';video.hidden=false;
   playAudio();
   cancelAnimationFrame(raf);loop();
 }
-function stopSpeak(keep){audio.pause();onEnd=null;playingId=null;cues=[];bubble.textContent='';speechVersion++;if(subtitleRequest){subtitleRequest.abort();subtitleRequest=null}if(!keep){guide.classList.add('hidden');map.invalidateSize({pan:false});cancelAnimationFrame(raf)}}
-audio.addEventListener('ended',function(){var f=onEnd;onEnd=null;var id=playingId;playingId=null;mouth.setAttribute('ry',1.5);lip.style.opacity=1;if(f)f(id);var status=$('#panelAudioStatus');if(status)status.textContent='讲解已完成，印章已保存'});
-function playAudio(){var result;try{result=audio.play()}catch(e){toast('播放受限，请点击重试');$('#gPause').textContent='重试';return}if(result&&result.catch)result.catch(function(){toast('播放受限或网络异常，请点击重试');$('#gPause').textContent='重试'})}
-audio.addEventListener('playing',function(){cancelAnimationFrame(raf);$('#gPause').textContent='暂停';loop()});
-audio.addEventListener('pause',function(){cancelAnimationFrame(raf)});
-audio.addEventListener('ended',function(){cancelAnimationFrame(raf)});
-audio.addEventListener('waiting',function(){cancelAnimationFrame(raf);$('#announcer').textContent='讲解正在缓冲，请稍候'});
-audio.addEventListener('error',function(){cancelAnimationFrame(raf);$('#gPause').textContent='重试';toast('音频暂不可用，可点击重试或阅读点位全文')});
+function clearMedia(media){media.pause();media.removeAttribute('src');media.load()}
+function showStill(){video.hidden=true;guide.classList.remove('video-playing')}
+function stopSpeak(keep){onEnd=null;playingId=null;wantPlay=false;cues=[];bubble.textContent='';speechVersion++;cancelAnimationFrame(raf);clearMedia(video);clearMedia(fallbackAudio);showStill();if(subtitleRequest){subtitleRequest.abort();subtitleRequest=null}if(!keep){guide.classList.add('hidden');map.invalidateSize({pan:false})}}
+function useAudioFallback(){
+  if(audio!==video||!playingId)return;
+  var position=video.currentTime||0,version=speechVersion;
+  audio=fallbackAudio;clearMedia(video);showStill();
+  fallbackAudio.src='audio/'+playingId+'.mp3';
+  fallbackAudio.onloadedmetadata=function(){if(speechVersion===version&&audio===fallbackAudio&&position>0)fallbackAudio.currentTime=Math.min(position,fallbackAudio.duration||position)};
+  $('#announcer').textContent='数字人视频暂不可用，已切换语音讲解';
+  if(wantPlay)playAudio();
+}
+function playAudio(){
+  var media=audio,version=speechVersion;wantPlay=true;
+  function failed(e){if(version!==speechVersion||media!==audio||!playingId||e.name==='AbortError')return;if(media===video&&e.name==='NotSupportedError'){useAudioFallback();return}wantPlay=false;toast('播放受限或网络异常，请点击重试');$('#gPause').textContent='重试'}
+  try{var result=media.play();if(result&&result.catch)result.catch(failed)}catch(e){failed(e)}
+}
+[video,fallbackAudio].forEach(function(media){
+  media.addEventListener('playing',function(){if(media!==audio||!playingId)return;cancelAnimationFrame(raf);wantPlay=true;guide.classList.toggle('video-playing',media===video);$('#gPause').textContent='暂停';loop()});
+  media.addEventListener('pause',function(){if(media===audio)cancelAnimationFrame(raf)});
+  media.addEventListener('waiting',function(){if(media!==audio||!playingId)return;cancelAnimationFrame(raf);$('#announcer').textContent='讲解正在缓冲，请稍候'});
+  media.addEventListener('error',function(){if(media!==audio||!playingId||!media.error)return;if(media===video){useAudioFallback();return}cancelAnimationFrame(raf);wantPlay=false;$('#gPause').textContent='重试';toast('音频暂不可用，可点击重试或阅读点位全文')});
+  media.addEventListener('ended',function(){if(media!==audio||!playingId||!media.ended)return;var f=onEnd,id=playingId;onEnd=null;playingId=null;wantPlay=false;cancelAnimationFrame(raf);showStill();$('#gPause').textContent='重新讲解';clearMedia(video);clearMedia(fallbackAudio);if(f)f(id);var status=$('#panelAudioStatus');if(status)status.textContent='讲解已完成，印章已保存'});
+});
 document.addEventListener('visibilitychange',function(){cancelAnimationFrame(raf);if(!document.hidden&&!audio.paused)loop()});
-$('#gPause').onclick=function(){if(audio.paused){if(audio.error)audio.load();playAudio()}else{audio.pause();this.textContent='继续'}};
+$('#gPause').onclick=function(){if(!playingId){speak('intro',G.narration.intro);return}if(!wantPlay){if(audio.error)audio.load();playAudio();this.textContent='暂停'}else{wantPlay=false;audio.pause();this.textContent='继续'}};
 $('#gStop').onclick=function(){stopTour();stopSpeak(false)};
 var minimise=document.createElement('button');minimise.id='gMin';minimise.type='button';minimise.textContent='收起';minimise.onclick=function(){var small=guide.classList.toggle('minimized');map.invalidateSize({pan:false});minimise.textContent=small?'展开':'收起';minimise.setAttribute('aria-expanded',String(!small))};$('.guide-ctrl').appendChild(minimise);
+window.addEventListener('guide:shell-ready',function(){window.GuideShell.registerModule('narrator',function(){closeAll();setTab('map');guide.classList.remove('hidden','minimized');minimise.textContent='收起';minimise.setAttribute('aria-expanded','true');if(!playingId){bubble.textContent='我是AI数字人讲解员小崮。点击“开始讲解”，聆听孟良崮的红色记忆。';$('#gPause').textContent='开始讲解'}map.invalidateSize({pan:false});requestAnimationFrame(function(){$('#gPause').focus()})})});
 
 /* ---------- point sheet ---------- */
 function srcHtml(s){if(!s||!s.length)return'';return'<div class="src">资料来源：'+s.map(function(x,i){return'['+(i+1)+'] <a href="'+esc(x.u)+'" target="_blank" rel="noopener">'+esc(x.t)+'</a>'}).join('；')+'</div>'}
@@ -240,7 +248,7 @@ function aboutPanel(){
 $('#btnLocate').onclick=showContext;
 $('#btnHelp').onclick=function(){$('#intro').classList.remove('hidden')};
 $('#introSub').textContent=G.site.name+' · '+G.site.addressShort;
-$('#introStart').onclick=function(){$('#intro').classList.add('hidden');ensureCtx();toast('点击地图上的红色点位开始')};
+$('#introStart').onclick=function(){$('#intro').classList.add('hidden');toast('点击地图上的红色点位开始')};
 $('#introTour').onclick=function(){$('#intro').classList.add('hidden');startTour()};
 window.__guide={openPoint:openPoint,startTour:startTour,showContext:showContext,stampPanel:stampPanel,quizPanel:quizPanel,routePanel:routePanel};
 var announcer=document.createElement('div');announcer.id='announcer';announcer.className='sr-only';announcer.setAttribute('role','status');announcer.setAttribute('aria-live','polite');document.body.appendChild(announcer);
