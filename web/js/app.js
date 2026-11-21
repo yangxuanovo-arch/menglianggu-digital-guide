@@ -136,6 +136,7 @@ function openPoint(id,opts){
   h+='<div class="cover'+(p.img?' has-photo':'')+'">'+(p.img?'<img src="'+esc(p.img)+'" alt="'+esc(p.imgAlt||p.name)+'" onerror="this.parentNode.classList.remove(\'has-photo\');this.remove()">':'')+'<span style="position:relative">'+esc(p.tagline||G.site.name)+'</span></div>';
   if(p.imageCredit){var credit=p.imageCredit;h+='<div class="src photo-credit">图：'+esc(credit.author)+' / <a href="'+esc(credit.licenseUrl)+'" target="_blank" rel="noopener">'+esc(credit.license)+'</a> / 来源 <a href="'+esc(credit.source)+'" target="_blank" rel="noopener">Wikimedia Commons</a>（缩放压缩，封面裁切）</div>'}
   h+='<div class="actions"><button class="btn-primary" id="btnListen">▶ 听讲解（听完集章）</button><button class="btn-ghost" id="btnStamp">'+(stamps[id]?'✔ 已打卡':'现场定位打卡')+'</button></div>';
+  h+='<p><button class="btn-ghost" id="btnNarrator">AI 视频讲解（听完集章）</button></p>';
   if(!stamps[id])h+='<p><button class="btn-ghost" id="btnRemote">非现场打卡（听完本点讲解）</button></p>';
   p.text.split(/\n+/).forEach(function(t){h+='<p class="text">'+esc(t)+'</p>'});
   if(p.facts&&p.facts.length)h+='<div class="facts">'+p.facts.map(esc).join('<br>')+'</div>';
@@ -143,6 +144,7 @@ function openPoint(id,opts){
   var nx=nextOf(id);if(nx)h+='<p><button class="btn-ghost" id="btnNext">下一站：'+esc(nx.name)+' →</button></p>';
   $('#sheetBody').innerHTML=h;$('#sheet').classList.remove('hidden');$('#sheet').scrollTop=0;guide.classList.add('with-sheet');
   $('#btnListen').onclick=function(){speak(id,p.text,function(){stamp(id,true);if(touring)tourTimer=setTimeout(tourNext,1200)})};
+  $('#btnNarrator').onclick=function(){if(window.GuideShell)window.GuideShell.openModule('narrator',id)};
   $('#btnStamp').onclick=function(){if(stamps[id])return;tryGeo(id)};
   var remote=$('#btnRemote');if(remote)remote.onclick=function(){if(stamps[id]){toast('本点已完成打卡');return}if(playingId===id){toast('听完本点讲解将自动获得印章');return}$('#btnListen').click()};
   if(nx)$('#btnNext').onclick=function(){openPoint(nx.id)};
@@ -265,6 +267,8 @@ document.addEventListener('keydown',function(e){if(!activeDialog)return;if(e.key
 document.addEventListener('focusin',function(e){if(activeDialog&&!activeDialog.contains(e.target)&&!(activeDialog.id==='sheet'&&guide.contains(e.target)))(focusable(activeDialog)[0]||activeDialog).focus()});
 syncDialog();
 window.addEventListener('guide:open-module',function(e){if(e.detail&&window.GuideModules&&typeof window.GuideModules[e.detail.module]==='function'){stopTour();stopSpeak(false);$('#intro').classList.add('hidden');$('#sheet').classList.add('hidden');$('#panel').classList.add('hidden');syncDialog()}});
+window.addEventListener('guide:narrator-return',function(e){if(e.detail&&byId(e.detail.id)){openPoint(e.detail.id);syncDialog();$('#btnNarrator').focus()}});
+window.addEventListener('guide:narrator-stamp',function(e){if(e.detail&&byId(e.detail.id))stamp(e.detail.id,true)});
 new MutationObserver(function(){document.body.classList.toggle('guide-visible',!guide.classList.contains('hidden'));map.invalidateSize({pan:false})}).observe(guide,{attributes:true,attributeFilter:['class']});
 var network=document.createElement('button');network.id='networkStatus';network.className='network-status';network.onclick=routePanel;document.body.appendChild(network);
 function networkState(){network.hidden=navigator.onLine;network.textContent='离线：点此查看点位与文字导览（地图需联网）';announcer.textContent=navigator.onLine?'网络已连接':'当前离线，可使用已缓存图文和讲解'}

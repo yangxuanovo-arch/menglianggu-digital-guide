@@ -193,5 +193,53 @@ window.GUIDE_MODULE_CREDITS = {
       "本模块使用AI辅助编程、界面设计和史料摘要。高程来自公开DEM，未用AI生成地形，未使用AI生成的历史照片、声音或人物影像。",
       "地形数据：WGS84 / EGM96；获取日期2026-11-21；资产SHA-256：e005ad66c2b15aef10158edd8f9a3d5697bc898c17e59c162d95f80e5789c6d2。三维引擎Three.js 0.170（MIT）。"
     ]
+  },
+  "narrator": {
+    "title": "AI 数字讲述",
+    "sources": [
+      {
+        "title": "RealVisXL V4.0 Lightning 模型卡",
+        "url": "https://huggingface.co/SG161222/RealVisXL_V4.0_Lightning"
+      },
+      {
+        "title": "SDXL / CreativeML Open RAIL++-M 许可",
+        "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/main/LICENSE.md"
+      },
+      {
+        "title": "SadTalker · Apache-2.0（含第三方组件许可）",
+        "url": "https://github.com/OpenTalker/SadTalker/blob/cd4c0465ae0b54a6f85af57f5c65fec9fe23e7f8/LICENSE"
+      },
+      {
+        "title": "GFPGAN · Apache-2.0（含第三方例外）",
+        "url": "https://github.com/TencentARC/GFPGAN/blob/master/LICENSE"
+      },
+      {
+        "title": "facexlib · Apache-2.0",
+        "url": "https://github.com/xinntao/facexlib/blob/master/LICENSE"
+      },
+      {
+        "title": "BasicSR · Apache-2.0",
+        "url": "https://github.com/XPixelGroup/BasicSR/blob/master/LICENSE.txt"
+      },
+      {
+        "title": "edge-tts 语音合成工具",
+        "url": "https://github.com/rany2/edge-tts"
+      }
+    ],
+    "media": [
+      {
+        "title": "虚构成年数字讲解员肖像与口型同步视频",
+        "author": "AI生成：RealVisXL V4.0 Lightning",
+        "license": "CreativeML Open RAIL++-M（肖像模型许可，含使用限制）",
+        "url": "https://huggingface.co/SG161222/RealVisXL_V4.0_Lightning",
+        "licenseUrl": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/main/LICENSE.md",
+        "changes": "SadTalker同步口型，GFPGAN修复面部；480×600 H.264 / AAC"
+      }
+    ],
+    "notes": [
+      "本模块肖像由RealVisXL V4.0 Lightning生成；口型动画由SadTalker制作，面部修复由GFPGAN完成。形象为虚构成年人，不是真实人物或历史人物肖像，视频不是历史影像。",
+      "配音沿用原讲解音频，由edge-tts调用Microsoft Edge神经网络语音zh-CN-XiaoxiaoNeural合成；字幕沿用对应SRT时间轴。原地图的SVG小崮与音频导览仍保留。",
+      "RealVisXL / SDXL适用CreativeML Open RAIL++-M，含用途限制；SadTalker、GFPGAN、facexlib及BasicSR适用Apache-2.0并保留第三方许可或例外。下载的检测、对齐和解析模型遵循各自上游条款，许可摘要不等于完整的预训练资产授权审计。语音服务适用其服务条款；本网站不分发模型权重。"
+    ]
   }
 };

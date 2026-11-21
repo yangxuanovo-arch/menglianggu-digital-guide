@@ -42,26 +42,54 @@ def panorama_ready(page, inspect=False):
     return frame
 
 
+def narrator_ready(page, clip='intro'):
+    frame = page.frame_locator('dialog[open] iframe')
+    frame.locator('#clip').wait_for()
+    assert frame.locator('#clip').input_value() == clip
+    assert '/menglianggu-digital-guide/narrator/index.html?' in page.locator('dialog[open] iframe').get_attribute('src')
+    assert frame.locator('#video').evaluate('v=>v.preload==="none" && v.playsInline && !v.hasAttribute("src")')
+    return frame
+
+
+def play_narrator(frame):
+    frame.locator('#play').click()
+    video = frame.locator('#video').element_handle()
+    video.owner_frame().wait_for_function('v=>v.currentTime>.2&&!v.paused&&!v.muted&&v.volume>0&&v.webkitAudioDecodedByteCount>0', arg=video, timeout=15000)
+    video.owner_frame().wait_for_function('document.querySelector("#subtitle").textContent.length>5', timeout=15000)
+    assert frame.locator('#subtitle').get_attribute('aria-live') == 'polite'
+    assert frame.locator('#play').inner_text() == '暂停'
+
+
 with sync_playwright() as p:
-    browser = p.chromium.launch(args=['--use-angle=swiftshader-webgl', '--enable-unsafe-swiftshader'])
+    server = ThreadingHTTPServer(('127.0.0.1', 0), partial(Handler, directory=str(ROOT / 'web')))
+    Thread(target=server.serve_forever, daemon=True).start()
+    base = f'http://127.0.0.1:{server.server_port}/menglianggu-digital-guide/'
+    browser = p.chromium.launch(args=['--use-angle=swiftshader-webgl', '--enable-unsafe-swiftshader', '--autoplay-policy=document-user-activation-required'], ignore_default_args=['--mute-audio'])
     for name, width, height in [('desktop', 1280, 720), ('phone', 375, 667)]:
         context = browser.new_context(viewport={'width': width, 'height': height})
+        context.add_init_script('window.__audios=[];const NativeAudio=window.Audio;window.Audio=function(...a){const m=new NativeAudio(...a);__audios.push(m);return m};window.Audio.prototype=NativeAudio.prototype;')
         page = context.new_page()
         errors = []
         page.on('console', lambda msg: errors.append(msg.text) if msg.type == 'error' else None)
         page.on('pageerror', lambda error: errors.append(str(error)))
-        page.goto('http://localhost:8090', wait_until='networkidle')
-        page.locator('#intro [data-module=terrain]').click()
-        frame = terrain_ready(page)
-        frame.locator('#back').click()
-        page.locator('dialog[open]').wait_for(state='hidden')
+        page.goto(base, wait_until='networkidle')
+        page.wait_for_function('[...document.querySelectorAll("[data-module]")].every(b=>b.dataset.ready==="true")')
+        assert '整合中' not in page.locator('body').text_content()
+        page.locator('#introStart').click()
         page.screenshot(path=str(SHOTS / f'integrate-{name}-map.png'))
         page.locator('#hallShortcut').click()
         page.locator('.cover img').wait_for()
         page.screenshot(path=str(SHOTS / f'integrate-{name}-point.png'))
-        page.keyboard.press('Escape')
-        page.locator('[data-tab=quiz]').click()
-        page.screenshot(path=str(SHOTS / f'integrate-{name}-quiz.png'))
+        page.locator('#btnListen').click()
+        page.wait_for_function('__audios[0].currentTime>.2&&!__audios[0].paused')
+        page.locator('#btnNarrator').click()
+        frame = narrator_ready(page, 'hall')
+        assert page.evaluate('__audios[0].paused')
+        assert page.locator('#bubble').text_content() == ''
+        play_narrator(frame)
+        frame.locator('#back').click()
+        page.locator('dialog[open]').wait_for(state='hidden')
+        assert page.locator('#btnNarrator').evaluate('e=>e===document.activeElement')
         page.keyboard.press('Escape')
         portal = page.locator('.module-launchers [data-module=terrain]')
         portal.click()
@@ -77,6 +105,24 @@ with sync_playwright() as p:
         page.keyboard.press('Escape')
         page.locator('dialog[open]').wait_for(state='hidden')
         assert portal.evaluate('e=>e===document.activeElement')
+        narrator = page.locator('.module-launchers [data-module=narrator]')
+        narrator.click()
+        frame = narrator_ready(page)
+        play_narrator(frame)
+        page.screenshot(path=str(SHOTS / f'integrate-{name}-narrator.png'))
+        frame.locator('summary').focus()
+        page.keyboard.press('Tab')
+        assert frame.locator('#back').evaluate('e=>e===document.activeElement')
+        page.keyboard.press('Shift+Tab')
+        assert frame.locator('summary').evaluate('e=>e===document.activeElement')
+        page.keyboard.press('Escape')
+        page.locator('dialog[open]').wait_for(state='hidden')
+        assert narrator.evaluate('e=>e===document.activeElement')
+        narrator.click()
+        frame = narrator_ready(page)
+        frame.locator('#back').click()
+        page.locator('dialog[open]').wait_for(state='hidden')
+        assert narrator.evaluate('e=>e===document.activeElement')
         panorama = page.locator('.module-launchers [data-module=panorama]')
         panorama.click()
         frame = panorama_ready(page, inspect=True)
@@ -84,6 +130,10 @@ with sync_playwright() as p:
         frame.locator('#back').click()
         page.locator('dialog[open]').wait_for(state='hidden')
         assert panorama.evaluate('e=>e===document.activeElement')
+        page.locator('[data-tab=quiz]').click()
+        assert page.locator('.q').count() == 5
+        page.screenshot(path=str(SHOTS / f'integrate-{name}-quiz.png'))
+        page.keyboard.press('Escape')
         page.locator('[data-tab=about]').click()
         scene_credits = page.locator('[data-module-credit=panorama]')
         terrain_credits = page.locator('[data-module-credit=terrain]')
@@ -93,9 +143,14 @@ with sync_playwright() as p:
         assert scene_credits.locator('a[href="https://polyhaven.com/a/grass_medium_01"]').count() == 1
         assert 'zh-CN-YunyangNeural' in scene_credits.inner_text()
         assert 'SRTM' in terrain_credits.inner_text() and 'AI' in terrain_credits.inner_text()
-        for module in ['panorama', 'terrain']:
+        narrator_credits = page.locator('[data-module-credit=narrator]')
+        for term in ['RealVisXL V4.0 Lightning', 'SadTalker', 'GFPGAN', 'edge-tts', 'zh-CN-XiaoxiaoNeural', 'Open RAIL++-M', 'Apache-2.0']:
+            assert term in narrator_credits.inner_text(), term
+        for module in ['panorama', 'terrain', 'narrator']:
             page.locator(f'[data-module-credit={module}] h3').evaluate("e=>e.scrollIntoView({block:'start'})")
             page.screenshot(path=str(SHOTS / f'integrate-{name}-about-{module}.png'))
+        narrator_credits.locator('a').first.scroll_into_view_if_needed()
+        page.screenshot(path=str(SHOTS / f'integrate-{name}-about-narrator-licenses.png'))
         page.keyboard.press('Escape')
         panorama.click()
         frame = panorama_ready(page)
@@ -104,15 +159,13 @@ with sync_playwright() as p:
         page.locator('dialog[open]').wait_for(state='hidden')
         assert panorama.evaluate('e=>e===document.activeElement')
         assert not errors, errors
-        print(f'PASS integration {width}x{height}: terrain/panorama portals render 3D and return with focus; hotspot 6 wide view captured; sandbox source/AI entries and panorama top-right AI entry removed; About retains both modules sources, 4 photos, 9 CC0 assets, DEM and AI credits; console errors: {errors}', flush=True)
+        print(f'PASS integration {width}x{height}: map -> point/audio -> per-point video -> terrain -> narrator (real unmuted video/AAC after gesture, captions, keyboard loop) -> panorama hotspot 6 -> quiz -> About; Back/Escape restore portal and point focus; no integration labels or module corner disclosures; all three modules credits retained; console errors: {errors}', flush=True)
         context.close()
-    server = ThreadingHTTPServer(('127.0.0.1', 0), partial(Handler, directory=str(ROOT / 'web')))
-    Thread(target=server.serve_forever, daemon=True).start()
     context = browser.new_context()
     page = context.new_page()
     errors = []
     page.on('pageerror', lambda error: errors.append(str(error)))
-    page.goto(f'http://127.0.0.1:{server.server_port}/menglianggu-digital-guide/', wait_until='networkidle')
+    page.goto(base, wait_until='networkidle')
     page.wait_for_function('navigator.serviceWorker.controller')
     context.set_offline(True)
     page.reload()
@@ -122,13 +175,22 @@ with sync_playwright() as p:
     assert '/menglianggu-digital-guide/terrain/index.html?embedded=1' in page.locator('dialog[open] iframe').get_attribute('src')
     frame.locator('#back').click()
     page.locator('dialog[open]').wait_for(state='hidden')
+    page.locator('.module-launchers [data-module=narrator]').click()
+    frame = narrator_ready(page)
+    play_narrator(frame)
+    frame.locator('#back').click()
+    page.locator('dialog[open]').wait_for(state='hidden')
+    for media in ['video/narrator/intro.mp4', 'audio/intro.mp3']:
+        for value, status, length in [('bytes=0-1023', 206, 1024), ('bytes=-512', 206, 512), ('bytes=999999999-', 416, 0)]:
+            result = page.evaluate('''async ({media,value})=>{const r=await fetch(media,{headers:{Range:value}});return {status:r.status,length:(await r.arrayBuffer()).byteLength,range:r.headers.get('Content-Range')}}''', {'media': media, 'value': value})
+            assert result['status'] == status and result['length'] == length and result['range'], result
     page.locator('.module-launchers [data-module=panorama]').click()
     frame = panorama_ready(page)
     assert '/menglianggu-digital-guide/scene/index.html?embed=1' in page.locator('dialog[open] iframe').get_attribute('src')
     frame.locator('#back').click()
     page.locator('dialog[open]').wait_for(state='hidden')
     assert not errors, errors
-    print(f'PASS offline subpath integration: cached terrain/elevation and panorama/textures load through portals and return; page errors: {errors}', flush=True)
+    print(f'PASS offline subpath integration: terrain/elevation, panorama/textures and real narrator video/AAC play through Pages-safe portals; MP3/MP4 byte ranges (prefix, suffix, invalid) work offline; page errors: {errors}', flush=True)
     context.close()
     server.shutdown()
     browser.close()
