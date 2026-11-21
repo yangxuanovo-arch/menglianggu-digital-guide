@@ -1,16 +1,22 @@
 import json
+import math
 from pathlib import Path
+import subprocess
+from urllib.parse import unquote
 
 from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
+from update_visitor_copy import AI
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'docs'
 TITLE = '崮上丰碑——孟良崮战役纪念地数字导览'
 FILENAME = f'红色齐鲁-数字创意挑战赛-{TITLE}-【学校名称】.docx'
 research = json.loads((ROOT / 'research/research.json').read_text())
+guide = json.loads((ROOT / 'web/content/data.js').read_text().removeprefix('window.GUIDE = ').removesuffix(';\n'))
+durations = [float(subprocess.check_output(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', str(ROOT/'web/audio'/(p['id']+'.mp3'))])) for p in guide['points']]
 doc = Document()
 section = doc.sections[0]
 section.page_width, section.page_height = Cm(21), Cm(29.7)
@@ -66,8 +72,8 @@ doc.add_page_break()
 heading('三、功能设计')
 for text in [
     '地图底图与缩放：Leaflet交互地图支持拖动、缩放、点位点击及区位概览。默认聚焦山上点群，名称以悬停提示呈现；路线时长标签仅在放大后显示，减少遮挡。',
-    '8个点位：纪念馆园区、华野战地指挥所标识点、华野战壕、铁索桥、炮轰石、弹击石、击毙张灵甫之地、山顶战役纪念碑。每点提供介绍、事实要点、坐标说明及来源入口；遗址名称与现代研学设施不混同。',
-    '讲解音频与数字人：8点均有约48—55秒中文合成语音及同步字幕；另有约48秒开场、22秒结语。原创SVG数字人“小崮”以音频音量驱动口型，支持播放、暂停、停止与自动顺序导览。',
+    '8个点位：纪念馆园区、华野战地指挥所标识点、华野战壕、铁索桥、炮轰石、弹击石、击毙张灵甫之地、山顶战役纪念碑。每点提供游客导览介绍、事实要点、实景照片及来源入口；照片明确标注作者、许可和来源。',
+    f'讲解音频与数字人：8点均有约{math.floor(min(durations))}—{math.ceil(max(durations))}秒中文合成语音及同步字幕；另有约48秒开场、22秒结语。原创SVG数字人“小崮”以音频音量驱动口型，支持播放、暂停、停止与自动顺序导览。',
     '推荐路线：纪念馆至山上明确为“乘车／景区交通”，不虚构步行时间。山上7点连线约1.89公里、63—90分钟，按坐标端点距离×1.6估算，非实测步道路网，也不是逐向导航；实际以景区指示和安全管制为准。',
     '研学打卡：现场可在点位300米范围内定位打卡；非现场可选择“非现场打卡”，完整听完本点讲解后获章。定位须用户授权；默认保存在本机浏览器，禁用存储时仅在当前页面内保留，不上传账号数据。',
     '知识问答与证书：题库12道有据可查的四选一题，每轮随机抽取5题，达标后获得问答章；集齐8点印章并通过问答，可填写姓名生成并下载PNG研学证书。证书为学习体验凭证，非官方认证。',
@@ -93,11 +99,22 @@ for index, source_id in enumerate(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S10', 'M
     p.paragraph_format.line_spacing = 1
     for run in p.runs:
         run.font.size = Pt(9)
-para('OSM原始节点／面数据用于坐标取证；Wikimedia Commons实地照片文件说明仅用于交叉确认标识点存在，未将其照片用于作品配图，也不据此断定遗迹年代。研究资料不替代馆方审定或现场测绘。')
+para('OSM原始节点／面数据用于坐标取证。实景照片来自Wikimedia Commons，照片不作为断定遗迹年代的依据。研究资料不替代馆方审定或现场测绘。')
 heading('七、AI使用声明')
-para('本作品使用AI辅助资料检索与整理、文案结构梳理、代码编写及调试；讲解配音由Microsoft Edge神经网络TTS生成，并非真人录音。数字人采用SVG绘制及程序动画，并非历史人物复原或虚构见证者。当前材料为AI辅助形成的参赛草稿；提交前须由参赛团队人工逐条核对史料、坐标、版权、配音与功能，并承担最终内容责任，不能将自动化检查等同于人工史实审核。')
+para('本作品使用AI辅助资料整理、代码编写及功能调试。'+AI)
 heading('版权与原创声明')
 para('作品讲解采用原创表述，不复制整篇史料；界面、SVG数字人及交互代码为本项目创作并含AI辅助。截图取自本作品。高德底图保留其署名及使用条款，OSM数据遵循ODbL并标注贡献者；Leaflet遵循BSD-2-Clause，Noto Sans CJK字体遵循SIL OFL（随站点附许可证）。不主张第三方地图、史料、字体或开源库的著作权；提交及公开展示前团队须复核相关授权、地图服务使用条件和学校／成员信息。')
 para('团队确认：【团队负责人签名】   日期：【年／月／日】')
+photos = [p for p in guide['points'] if p.get('imageCredit')]
+if photos:
+    doc.add_page_break()
+    heading('附录：实景图片版权与来源')
+    para('以下8张照片为对应点位实景；作者及许可取自Wikimedia Commons文件元数据。本站制作等比缩小、JPEG压缩版本，封面按容器裁切显示；照片改作遵循CC BY-SA 4.0。')
+    for point in photos:
+        credit = point['imageCredit']
+        p = para(f'{point["no"]}. {point["name"]}｜{credit["author"]}｜{credit["license"]}\n{unquote(credit["source"])}')
+        for run in p.runs:
+            run.font.size = Pt(9)
+    para('许可全文：https://creativecommons.org/licenses/by-sa/4.0/\n原始图片元数据保存在research/photo-sources.json；图片引用不改变研究资料中的坐标与史实核验边界。')
 doc.save(OUT / FILENAME)
 print(OUT / FILENAME)

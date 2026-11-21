@@ -35,6 +35,17 @@ body:has(.guide:not(.hidden)){--dock:124px}.guide,.guide.with-sheet{left:24px;ri
   .guide,.guide.with-sheet{left:12px;right:12px;height:84px;padding:5px 12px;gap:8px}.guide .avatar-wrap{width:48px;flex-basis:48px}.avatar-wrap>svg{height:62px}.bubble{max-height:72px;font-size:11px;line-height:1.7}.guide-name{font-size:7px}.guide-ctrl{gap:5px}.guide-ctrl button{min-height:29px;padding:4px;font-size:10px}
   .intro{padding:12px;align-items:safe center}.intro-card{min-height:0;max-width:900px;display:grid;grid-template-columns:1fr 1fr}.intro-visual{min-height:0;padding:34px 16px 60px}.intro-card h2{font-size:38px;letter-spacing:5px}.intro-star{margin-bottom:17px}.intro-sub{font-size:10px}.intro-year{font-size:58px;bottom:0}.intro-content{padding:20px 24px}.intro-content:before{margin-bottom:16px}.intro-steps{margin-bottom:0;font-size:10px}.intro-steps li{margin-bottom:10px;padding-left:28px}.intro-steps li b{font-size:11px}.intro-card .btn-primary,.intro-card .btn-ghost{min-height:35px;padding:7px;font-size:11px;margin-top:7px}
 }
+/* Keep all three audio controls and the disclosure inside the reserved dock. */
+.guide-ctrl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));flex-basis:84px;gap:5px}
+.guide-ctrl .voice-label,.guide-ctrl #gPause{grid-column:1/-1}
+.voice-label{font-size:9px;line-height:1.3;color:#755e46;background:transparent;padding:0;white-space:nowrap}
+.guide-ctrl button{padding:5px 3px}
+body:has(.guide.minimized:not(.hidden)){--dock:48px}
+.guide.minimized,.guide.minimized.with-sheet{left:24px;right:24px;height:48px;padding:5px 16px;justify-content:flex-end}
+.guide.minimized .guide-ctrl{display:flex;flex:0 0 auto;align-items:center;gap:10px}
+.guide.minimized .guide-ctrl button{min-width:42px}
+@media(max-width:600px){.guide-ctrl{flex-basis:76px;gap:4px}.voice-label{font-size:8px}.guide.minimized,.guide.minimized.with-sheet{left:0;right:0}}
+@media(max-height:600px) and (orientation:landscape){.guide .avatar-wrap{display:block}.guide-ctrl{gap:3px;flex-basis:76px}.guide-ctrl button{min-height:26px;padding:3px;font-size:10px}.voice-label{font-size:8px}}
 /* Full-bleed memorial landscape: the scene, not a floating card, is the opening. */
 .intro{display:block;padding:0;background:#321817;overflow:auto}
 .intro:before{display:none}
