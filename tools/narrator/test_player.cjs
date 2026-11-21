@@ -129,6 +129,20 @@ async function main() {
       assert.ok(await page.locator('#avatar').evaluate(v => v.hidden));
       await page.locator('#gStop').click();
 
+      await page.evaluate(() => window.__guide.openPoint('field-command'));
+      await page.locator('#btnListen').click();
+      await page.waitForFunction(() => window.testFallback.src.endsWith('/field-command.mp3') && !window.testFallback.paused);
+      await page.locator('#gStop').click();
+      assert.ok(await page.evaluate(() => !JSON.parse(localStorage.getItem('mlg_stamps_v1') || '{}')['field-command']), 'Stopping an unfinished point must not stamp it');
+      await page.locator('#sheetClose').click();
+      await page.locator('.module-launchers [data-module=narrator]').click();
+      await page.locator('#gPause').click();
+      await page.waitForFunction(() => window.testFallback.src.endsWith('/field-command.mp3') && window.testFallback.readyState >= 2 && !window.testFallback.paused);
+      await page.evaluate(() => window.testFallback.currentTime = window.testFallback.duration - 0.1);
+      await page.waitForFunction(() => document.querySelector('#gPause').textContent === '重新讲解');
+      assert.ok(await page.evaluate(() => JSON.parse(localStorage.getItem('mlg_stamps_v1'))['field-command']), 'Finishing an interrupted point through narrator replay must save its stamp');
+      await page.locator('#gStop').click();
+
       await page.evaluate(() => window.__guide.openPoint('hall'));
       await page.locator('#btnListen').click();
       await page.waitForFunction(() => window.testFallback.src.endsWith('/hall.mp3') && window.testFallback.readyState >= 2 && !window.testFallback.paused);
@@ -195,7 +209,7 @@ async function main() {
       await page.locator('#gStop').click();
 
       assert.deepEqual(errors, []);
-      console.log(`PASS ${viewport.width}x${viewport.height}: idle, audible video, pause/resume/stop, point replay after end, MP3 fallback, complete tour chaining/stamps, autoplay retry, empty media/SRT, audio error`);
+      console.log(`PASS ${viewport.width}x${viewport.height}: idle, audible video, pause/resume/stop, point replay after end, interrupted-point replay stamps, MP3 fallback, complete tour chaining/stamps, autoplay retry, empty media/SRT, audio error`);
       console.log(`Console ${viewport.width}: application errors=0; expected missing-video HTTP 404 diagnostics=${missing.length}`);
       console.log(`Expected diagnostic: ${missing[0]}`);
       await context.close();
