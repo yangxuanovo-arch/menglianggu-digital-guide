@@ -33,6 +33,31 @@ Only official, trusted checkpoints are loaded (PyTorch 2.5 uses pickle loading
 for the upstream `.pth` files). Setup is repeatable; dependency installs are
 cached using a setup/requirements fingerprint.
 
+## Browser regression check
+
+The player uses the MP4's audio and the existing SRT clock; missing/invalid MP4s
+use MP3 plus the idle portrait. Browsers may log an expected HTTP 404 for a clip
+that has not arrived; this is handled, not an uncaught application error.
+`tools/build_offline.py` excludes MP4s from precaching so arriving clips stay
+lazy-loaded. Regenerate the worker after changing web assets as described in
+`docs/accessibility.md`.
+
+With Chrome and `playwright-core` installed outside the repository (set
+`NODE_PATH` to that installation's `node_modules`), prepare a five-second
+H.264/AAC fixture at `~/narrator_work/shots/intro-test.mp4`, serve `web/`, then run:
+
+```sh
+python3 -m http.server 8080 --directory web
+# In another shell; CHROME may be an absolute executable path:
+CHROME=google-chrome node tools/narrator/test_player.cjs
+```
+
+The fixture is intercepted at the intro URL, never committed. Actual MP3s are
+served with byte-range support in the test (Python's simple server lacks it).
+The check covers both viewports, user-gesture audio, subtitles, controls, tour
+completion/stamps, missing/empty video, blocked autoplay and missing captions.
+Screenshots go to `~/narrator_work/shots/`; override with `NARRATOR_SHOTS`.
+
 ## Rendering and progress
 
 `render.sh <clip-id> [--enhancer gfpgan]` reads `web/audio/<clip-id>.mp3`,
@@ -74,8 +99,8 @@ with the pinned 2.5.1 runtime: one second of real narration, full/still/GFPGAN,
 H.264/yuv420p, 25fps, AAC, one second, 45,969 bytes. This short test includes
 startup overhead and is not a completed full narration clip.
 
-Start the requested sequential batch (intro, monument, outro, hall,
-field-command, zhang-site, bullet-rock, shell-rock, trench, bridge):
+Start the local sequential batch (intro, monument, outro). Other clips are
+rendered separately; pass explicit clip IDs to `batch.sh` to override its list:
 
 ```sh
 mkdir -p "$HOME/narrator_work"
