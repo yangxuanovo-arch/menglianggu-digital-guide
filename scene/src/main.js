@@ -197,10 +197,10 @@ function goTo(i) {
 }
 
 function setPaused(p) {
+  if (!state.usingAudio && p && !state.paused) state.clockOffset = stopTime();
   state.paused = p;
   if (state.usingAudio) { p ? audio.pause() : audio.play().catch(() => useClock(audio.currentTime)); }
-  else if (p) state.clockOffset = stopTime();
-  else state.clockStart = performance.now();
+  else if (!p) state.clockStart = performance.now();
   updateButtons();
 }
 
