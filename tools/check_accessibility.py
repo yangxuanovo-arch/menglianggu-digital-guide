@@ -87,7 +87,7 @@ with sync_playwright() as p:
     page.keyboard.press('Tab')
     assert page.locator('#panelClose').evaluate('(e)=>e===document.activeElement')
     page.keyboard.press('Escape')
-    print(f'PASS About focus regression: closed/open summary reaches all {links.count() - first_credit} photo-credit links; reverse Tab and wrap; native select, textarea and contenteditable remain reachable')
+    print(f'PASS About focus regression: closed/open summary reaches all {links.count() - first_credit} photo/module source links; reverse Tab and wrap; native select, textarea and contenteditable remain reachable')
     await_ready = page.evaluate('navigator.serviceWorker.ready.then(r=>r.scope)')
     assert await_ready.endswith('/menglianggu-digital-guide/')
     context.set_offline(True)

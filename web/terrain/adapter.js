@@ -12,7 +12,7 @@
     opener=document.activeElement;
     if(!dialog){
       dialog=document.createElement('dialog');dialog.setAttribute('aria-label','孟良崮三维战场沙盘');
-      dialog.style.cssText='position:fixed;inset:0;width:100%;height:100%;max-width:100%;max-height:100%;margin:0;padding:0;border:0;background:#120e0c;overflow:hidden;color:#eee6d6;';
+      dialog.style.cssText='position:fixed;top:0;right:0;bottom:0;left:0;width:100%;height:100%;max-width:100%;max-height:100%;margin:0;padding:0;border:0;background:#120e0c;overflow:hidden;color:#eee6d6;';
       frame=document.createElement('iframe');frame.title='孟良崮三维战场沙盘';frame.style.cssText='display:block;width:100%;height:100%;border:0;';
       dialog.append(frame);document.body.append(dialog);
       dialog.addEventListener('cancel',function(e){e.preventDefault();close();});

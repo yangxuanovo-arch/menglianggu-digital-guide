@@ -1,7 +1,7 @@
 (function(){
   'use strict';
   var modules=window.GuideModules=window.GuideModules||{};
-  var titles={terrain:'3D 地形沙盘',narrator:'AI 数字讲述',panorama:'360° 实景漫游'};
+  var titles={terrain:'3D 地形沙盘',narrator:'AI 数字讲述',panorama:'3D 场景漫游'};
   var launchers=document.querySelector('.module-launchers');
   document.querySelectorAll('.opening-experiences [data-module]').forEach(function(button){launchers.appendChild(button.cloneNode(true))});
   function refresh(id){document.querySelectorAll('[data-module="'+id+'"]').forEach(function(button){var ready=typeof modules[id]==='function';button.dataset.ready=String(ready);button.querySelector('.portal-state').textContent=ready?'进入体验':'整合中'})}

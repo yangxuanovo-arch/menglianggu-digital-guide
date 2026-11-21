@@ -280,7 +280,6 @@ function bindUI() {
   $('#mute').addEventListener('click', () => { state.muted = !state.muted; audio.muted = state.muted; updateButtons(); });
   $('#cc').addEventListener('click', () => { state.cc = !state.cc; updateButtons(); });
   $('#card-toggle').addEventListener('click', () => $('#card').classList.toggle('open'));
-  $('#info').addEventListener('click', () => $('#credits').classList.add('show'));
   $('#credits-close').addEventListener('click', () => $('#credits').classList.remove('show'));
   $('#credits').addEventListener('click', (e) => { if (e.target.id === 'credits') $('#credits').classList.remove('show'); });
   $('#browse').addEventListener('click', () => $('#finish').classList.remove('show'));
@@ -289,9 +288,12 @@ function bindUI() {
   if (!mobile) $('#card').classList.add('open');
   if (new URLSearchParams(location.search).has('embed') && parent !== window) {
     $('#back').hidden = false;
-    const closeEmbed = () => { audio.pause(); parent.postMessage({ type: 'guide:close-module', id: 'panorama' }, '*'); };
+    const closeEmbed = () => { audio.pause(); parent.postMessage({ type: 'guide:close-module', id: 'panorama' }, location.origin); };
     $('#back').addEventListener('click', closeEmbed);
     addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#credits').classList.contains('show')) closeEmbed(); });
+  } else {
+    $('#back').hidden = false;
+    $('#back').addEventListener('click', () => location.assign('../index.html'));
   }
   updateButtons();
 }

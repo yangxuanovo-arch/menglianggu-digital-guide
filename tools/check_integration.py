@@ -18,9 +18,24 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def terrain_ready(page):
-    frame = page.frame_locator('dialog iframe')
+    frame = page.frame_locator('dialog[open] iframe')
     frame.locator('#data-status').filter(has_text='真实数字高程').wait_for(timeout=30000)
     assert frame.locator('#scene canvas').is_visible()
+    return frame
+
+
+def panorama_ready(page, inspect=False):
+    frame = page.frame_locator('dialog[open] iframe')
+    frame.locator('#start.ready').wait_for(timeout=30000)
+    assert frame.locator('#stage canvas').is_visible()
+    assert frame.locator('#info').count() == 0
+    frame.locator('#free').click()
+    frame.locator('#start.hide').wait_for()
+    if inspect:
+        frame.locator('#next').click()
+        frame.locator('#next').click()
+        page.wait_for_timeout(3300)
+        assert frame.locator('#card-title').inner_text()
     return frame
 
 
@@ -59,8 +74,32 @@ with sync_playwright() as p:
         page.keyboard.press('Escape')
         page.locator('dialog[open]').wait_for(state='hidden')
         assert portal.evaluate('e=>e===document.activeElement')
+        panorama = page.locator('.module-launchers [data-module=panorama]')
+        panorama.click()
+        frame = panorama_ready(page, inspect=True)
+        page.screenshot(path=str(SHOTS / f'integrate-{name}-panorama.png'))
+        frame.locator('#back').click()
+        page.locator('dialog[open]').wait_for(state='hidden')
+        assert panorama.evaluate('e=>e===document.activeElement')
+        page.locator('[data-tab=about]').click()
+        scene_credits = page.locator('[data-module-credit=panorama]')
+        terrain_credits = page.locator('[data-module-credit=terrain]')
+        assert scene_credits.locator('a[href*="commons.wikimedia.org"]').count() == 4
+        assert scene_credits.locator('a[href*="polyhaven.com"]').count() == 7
+        assert 'zh-CN-YunyangNeural' in scene_credits.inner_text()
+        assert 'SRTM' in terrain_credits.inner_text() and 'AI' in terrain_credits.inner_text()
+        for module in ['panorama', 'terrain']:
+            page.locator(f'[data-module-credit={module}] h3').evaluate("e=>e.scrollIntoView({block:'start'})")
+            page.screenshot(path=str(SHOTS / f'integrate-{name}-about-{module}.png'))
+        page.keyboard.press('Escape')
+        panorama.click()
+        frame = panorama_ready(page)
+        frame.locator('#back').focus()
+        page.keyboard.press('Escape')
+        page.locator('dialog[open]').wait_for(state='hidden')
+        assert panorama.evaluate('e=>e===document.activeElement')
         assert not errors, errors
-        print(f'PASS integration {width}x{height}: opening/map portals render real terrain; back and iframe Escape restore map/focus; console errors: {errors}', flush=True)
+        print(f'PASS integration {width}x{height}: terrain/panorama portals render 3D and return with focus; top-right AI entry removed; About retains both modules sources, 4 photos, 7 CC0 assets, DEM and AI credits; console errors: {errors}', flush=True)
         context.close()
     server = ThreadingHTTPServer(('127.0.0.1', 0), partial(Handler, directory=str(ROOT / 'web')))
     Thread(target=server.serve_forever, daemon=True).start()
@@ -75,11 +114,16 @@ with sync_playwright() as p:
     page.locator('#introStart').click()
     page.locator('.module-launchers [data-module=terrain]').click()
     frame = terrain_ready(page)
-    assert '/menglianggu-digital-guide/terrain/index.html?embedded=1' in page.locator('dialog iframe').get_attribute('src')
+    assert '/menglianggu-digital-guide/terrain/index.html?embedded=1' in page.locator('dialog[open] iframe').get_attribute('src')
+    frame.locator('#back').click()
+    page.locator('dialog[open]').wait_for(state='hidden')
+    page.locator('.module-launchers [data-module=panorama]').click()
+    frame = panorama_ready(page)
+    assert '/menglianggu-digital-guide/scene/index.html?embed=1' in page.locator('dialog[open] iframe').get_attribute('src')
     frame.locator('#back').click()
     page.locator('dialog[open]').wait_for(state='hidden')
     assert not errors, errors
-    print(f'PASS offline subpath integration: cached terrain bundle, elevation and interface load through portal and return; page errors: {errors}', flush=True)
+    print(f'PASS offline subpath integration: cached terrain/elevation and panorama/textures load through portals and return; page errors: {errors}', flush=True)
     context.close()
     server.shutdown()
     browser.close()

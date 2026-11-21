@@ -5,6 +5,7 @@ import subprocess
 from urllib.parse import unquote
 
 from docx import Document
+from docx.enum.section import WD_SECTION
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
@@ -107,8 +108,12 @@ para('作品讲解采用原创表述，不复制整篇史料；界面、SVG数�
 para('团队确认：【团队负责人签名】   日期：【年／月／日】')
 photos = [p for p in guide['points'] if p.get('imageCredit')]
 if photos:
-    doc.add_page_break()
-    heading('附录：实景图片版权与来源')
+    appendix = doc.add_section(WD_SECTION.NEW_PAGE)
+    columns = appendix._sectPr.find(qn('w:cols'))
+    columns.set(qn('w:num'), '2')
+    columns.set(qn('w:space'), '360')
+    appendix_start = len(doc.paragraphs)
+    heading('附录：图片与模块署名')
     para('以下8张照片为对应点位实景；作者及许可取自Wikimedia Commons文件元数据。本站制作等比缩小、JPEG压缩版本，封面按容器裁切显示；照片改作遵循CC BY-SA 4.0。')
     for point in photos:
         credit = point['imageCredit']
@@ -116,5 +121,22 @@ if photos:
         for run in p.runs:
             run.font.size = Pt(9)
     para('许可全文：https://creativecommons.org/licenses/by-sa/4.0/\n原始图片元数据保存在research/photo-sources.json；图片引用不改变研究资料中的坐标与史实核验边界。')
+    modules_path = ROOT / 'web/content/module-credits.js'
+    modules = json.loads(modules_path.read_text().removeprefix('window.GUIDE_MODULE_CREDITS = ').removesuffix(';\n'))
+    for module in modules.values():
+        doc.add_heading(module['title'] + '：来源与AI声明', 2)
+        for note in module['notes']:
+            para(note)
+        for source in module['sources']:
+            para(source['title'] + '\n' + source['url'])
+        for credit in module['media']:
+            para(f'{credit["title"]}｜{credit["author"]}｜{credit["license"]}\n{unquote(credit["url"])}\n{credit["changes"]}')
+        for license_url in sorted({credit['licenseUrl'] for credit in module['media']}):
+            para('许可／署名：' + license_url)
+    for p in doc.paragraphs[appendix_start:]:
+        p.paragraph_format.line_spacing = 1
+        p.paragraph_format.space_after = Pt(3)
+        for run in p.runs:
+            run.font.size = Pt(8.5)
 doc.save(OUT / FILENAME)
 print(OUT / FILENAME)
