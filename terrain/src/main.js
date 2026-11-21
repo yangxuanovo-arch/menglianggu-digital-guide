@@ -151,7 +151,7 @@ function createUnit(unit){
   const ring=new THREE.Mesh(new THREE.RingGeometry(.28,.31,40),new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,opacity:.85}));ring.rotation.x=-Math.PI/2;group.add(ring);
   const pole=new THREE.Mesh(new THREE.CylinderGeometry(.009,.009,.65,5),new THREE.MeshBasicMaterial({color}));pole.position.y=.32;group.add(pole);
   scene.add(group);
-  const el=document.createElement('button');el.type='button';el.className=`map-label unit-label ${unit.side==='kmt'?'kmt-label':''}`;el.textContent=unit.name;el.setAttribute('aria-label',`${unit.name}：${unit.role}，查看行动依据`);$('labels').append(el);
+  const el=document.createElement('button');el.type='button';el.className=`map-label unit-label ${unit.side==='kmt'?'kmt-label':''}`;el.textContent=mobile?unit.short:unit.name;el.setAttribute('aria-label',`${unit.name}：${unit.role}，查看行动依据`);$('labels').append(el);
   const label={el,position:new THREE.Vector3(),unit:true};labels.push(label);
   el.addEventListener('click',()=>{
     $('unit-card').hidden=false;$('unit-name').textContent=unit.name;$('unit-role').textContent=unit.role;$('unit-detail').textContent=unit.detail;
@@ -180,7 +180,7 @@ function updateUnits(){
   const fraction=Math.min(.99,(viewTime+.8)/4.8);
   for(const u of movingUnits){
     const p=u.curve.getPointAt(fraction);u.group.position.copy(p);u.label.position.copy(p).add(new THREE.Vector3(0,.85,0));
-    if(u.unit.side==='kmt')u.label.el.textContent=viewTime>=4?'整74师 · 已歼灭':u.unit.name;
+    if(u.unit.side==='kmt')u.label.el.textContent=viewTime>=4?(mobile?'整74师 · 歼灭':'整74师 · 已歼灭'):(mobile?u.unit.short:u.unit.name);
   }
   for(const r of routes){
     const count=Math.max(1,Math.floor(fraction*100))*5*6;
@@ -215,7 +215,7 @@ function buildScene(){
   const base=new THREE.Mesh(new THREE.BoxGeometry(widthKm+.1,.34,depthKm+.1),new THREE.MeshStandardMaterial({color:0x251d15,metalness:.5,roughness:.6}));base.position.y=-.6;scene.add(base);
   const edges=new THREE.LineSegments(new THREE.EdgesGeometry(base.geometry),new THREE.LineBasicMaterial({color:0x9b7a42,transparent:true,opacity:.6}));edges.position.copy(base.position);scene.add(edges);
   units.forEach(createUnit);rebuildSurface();
-  const places=[['孟良崮',118.189,35.579,'place primary','战役核心区'],['垛庄',118.158,35.545,'place','南侧要地'],['向坦埠',118.20,35.707,'place','北向 · 地图外'],['鲁南方向',118.092,35.501,'place','第6纵队来向']];
+  const places=[['孟良崮',118.189,35.579,'place primary','战役核心区'],['垛庄',118.158,35.545,'place strategic','南侧要地'],['向坦埠',118.20,35.707,'place secondary','北向 · 地图外'],['鲁南方向',118.092,35.501,'place secondary','第6纵队来向']];
   places.forEach(([name,lon,lat,cls,subtitle])=>{const label=addLabel(name,geo(lon,lat,.2),cls,subtitle);label.geo=[lon,lat];});
   // The red wash is deliberately not a claimed battle boundary.
   const wash=new THREE.Mesh(new THREE.CircleGeometry(2.5,64),new THREE.MeshBasicMaterial({color:0xb65331,transparent:true,opacity:.075,depthWrite:false,side:THREE.DoubleSide}));
@@ -275,7 +275,7 @@ function layoutLabels(){
   });
   for(const {l,x,y,z,bw,bh} of projected){
     if(!l.line){l.line=document.createElementNS(leaderSvg.namespaceURI,'line');l.line.setAttribute('stroke',l.unit?'#be956b':'#cbb278');l.line.setAttribute('stroke-opacity','.5');l.line.setAttribute('stroke-width','.6');leaderSvg.append(l.line);}
-    const visible=z>=-1&&z<=1&&!(terrainOnly&&l.unit);
+    const visible=z>=-1&&z<=1&&bw>0&&bh>0&&!(terrainOnly&&l.unit);
     l.el.style.visibility=visible?'visible':'hidden';l.line.style.display='none';
     if(!visible)continue;
     const left=mobile?10:315,right=w-(mobile?57:102),top=mobile?230:145,bottom=mobile?h-385:h-249;
