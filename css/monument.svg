@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 300" fill="none">
+<!-- Original, simplified three-bayonet monument silhouette; decorative, not a measured elevation. -->
+<path d="m49 272 4-235 24 18 1 217Zm30 0L80 8l26 29 1 235Zm30 0 2-219 22-26 3 245Z" fill="#30251f"/>
+<path d="m53 37 7 10-2 219h-9Zm27-29 8 16-1 242h-8Zm53 19 3 245h-8l-2-236Z" fill="#c7a16a" fill-opacity=".55"/>
+<path d="m38 270 108-1 15 14H24Zm-19 14h147v7H19Zm-12 9h171v7H7Z" fill="#30251f"/>
+<path d="M39 270h106M24 283h137M19 291h147" stroke="#c7a16a" stroke-opacity=".45"/>
+<path d="M97 68v140" stroke="#ba9156" stroke-width="2" stroke-dasharray="4 8" opacity=".5"/>
+</svg>
