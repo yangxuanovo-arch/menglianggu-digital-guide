@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#120e0c">
+  <meta name="description" content="基于真实数字高程的孟良崮战役三维地形沙盘。旋转山河，沿时间轴理解战役进程，逐条查阅史料。">
+  <title>山河作证 · 孟良崮三维战场</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23120e0c'/%3E%3Cpath d='M9 46 25 18 34 34 43 23 56 46Z' fill='none' stroke='%23d5b77b' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="terrain.css">
+</head>
+<body>
+  <main id="sandbox" aria-label="孟良崮三维战场沙盘">
+    <div id="scene" aria-label="真实高程三维地形，可拖动旋转，滚轮或双指缩放"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div id="labels" aria-label="沙盘地名与部队"></div>
+    <header class="topbar">
+      <a class="back" href="./index.html" id="back" aria-label="沙盘首页；嵌入模式返回数字导览"><span>←</span><span class="back-copy">崮上丰碑</span></a>
+      <div class="top-title">孟良崮战役 <span>/</span> 三维地形沙盘</div>
+      <button id="sources-open" class="plain-button">史料与数据 <span>↗</span></button>
+    </header>
+
+    <aside class="story">
+      <div class="edition"><i></i> 数字战场 · 沂蒙山地</div>
+      <h1>山河<span>作证</span></h1>
+      <p class="subtitle">在真实山川之间，<br>重读一场改变战局的战役。</p>
+      <div class="title-rule"><span>MENGLIANGGU · 1947</span></div>
+      <section class="phase-story" aria-live="polite" aria-atomic="true">
+        <div class="phase-eyebrow" id="phase-eyebrow"></div>
+        <h2 id="phase-title"></h2>
+        <p id="phase-body"></p>
+        <button id="phase-source" class="source-link">查阅本阶段史料 <span>↗</span></button>
+      </section>
+      <div class="legend"><span><i class="pla"></i>华东野战军</span><span><i class="kmt"></i>国民党军</span></div>
+      <p class="scope-note">箭线与部队位置为方向示意<br>非精确行军轨迹、阵位或兵力比例</p>
+    </aside>
+
+    <div class="map-heading" aria-hidden="true"><span>鲁中 · 蒙阴东南</span><strong>一九四七</strong></div>
+    <div class="technical"><span class="live-dot"></span><span id="data-status">正在构建真实地形</span><span class="tech-separator">/</span><span id="quality-label">DEM</span></div>
+    <div class="north" aria-hidden="true"><b>N</b><svg viewBox="0 0 40 50"><path d="M20 4 32 39 20 32 8 39Z" fill="none" stroke="currentColor"/><path d="M20 4V32L8 39Z" fill="currentColor"/></svg></div>
+
+    <nav class="map-tools" aria-label="沙盘控制">
+      <button id="fly" title="电影运镜" aria-label="开始电影运镜" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m4 16 6-12 3 7 7 3-12 6 1-6Z"/></svg><span>巡航</span></button>
+      <button id="reset" title="复位视角" aria-label="复位视角"><svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/></svg><span>复位</span></button>
+      <button id="view" title="切换俯视" aria-label="切换俯视" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m3 8 9-5 9 5-9 5Zm0 5 9 5 9-5M3 18l9 5 9-5"/></svg><span>俯视</span></button>
+      <button id="layers" title="地形模式" aria-label="切换纯地形模式" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="m2 19 7-13 5 8 3-5 5 10ZM6 12l3 2 3-2"/></svg><span>地形</span></button>
+    </nav>
+
+    <div class="scale-block"><div class="scale-line"><i></i><i></i><i></i></div><span id="scale-label">地图局部 5 km</span><small>随视角变化 · 示意尺</small></div>
+    <div class="terrain-options"><label for="exaggeration">地形起伏</label><select id="exaggeration"><option value="3.6">3.6× 增强</option><option value="1">1× 原比例</option></select><span>现代高程 · 非1947年地表复原</span></div>
+    <div class="interaction-hint" id="hint"><span>↔ 拖动旋转</span><span>⊕ 滚轮 / 双指缩放</span><span>点击部队查看行动</span></div>
+
+    <section class="timeline-panel" aria-label="战役进程时间轴">
+      <div class="timeline-top"><div><span class="timeline-kicker">战役推演</span><strong id="phase-focus"></strong></div><span class="date-range">1947.05.13 — 05.16</span><button id="play" class="play-button" aria-label="播放战役推演"><span id="play-icon">▶</span><span id="play-copy">播放推演</span></button></div>
+      <div class="timeline"><div class="timeline-rail"><div id="timeline-progress"></div></div><div id="phase-buttons"></div></div>
+      <label class="scrub-label" for="scrub">拖动回看战役进程<input type="range" id="scrub" min="0" max="4" step="0.005" value="0" aria-label="战役时间轴"></label>
+    </section>
+    <footer><span>SRTM / USGS · Mapzen Terrain Tiles</span><button id="disclosure">AI 辅助制作声明</button></footer>
+    <div id="loading" role="status"><div class="loader-mark">山<span>河</span></div><p id="loading-copy">正在读取真实高程</p><div class="load-track"><i></i></div></div>
+    <div id="fallback" hidden><h2>三维视图暂不可用</h2><p id="fallback-reason">请尝试支持 WebGL 2 的浏览器。</p><p>仍可使用下方时间轴阅读战役进程，并查阅史料与数据。</p><button id="retry">重新加载</button></div>
+    <div id="unit-card" class="unit-card" hidden><button id="unit-close" aria-label="关闭部队详情">×</button><small id="unit-role"></small><h3 id="unit-name"></h3><p id="unit-detail"></p><button id="unit-source" class="source-link">查看史料 ↗</button><span class="unit-warning">位置与轨迹为教学示意</span></div>
+  </main>
+  <dialog id="sources-dialog" aria-labelledby="sources-title"><div class="dialog-head"><div><span class="edition">历史可溯 · 数据透明</span><h2 id="sources-title">史料与数据说明</h2></div><button id="sources-close" aria-label="关闭史料与数据">×</button></div><div class="dialog-content" id="source-content"></div></dialog>
+  <script type="module" src="terrain.js"></script>
+  <script nomodule>document.getElementById('loading').hidden=true;document.getElementById('fallback').hidden=false;</script>
+</body>
+</html>
