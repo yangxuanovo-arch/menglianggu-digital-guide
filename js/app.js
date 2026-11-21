@@ -66,7 +66,7 @@ function loop(){
   if(analyser&&!audio.paused){analyser.getByteTimeDomainData(buf);var sum=0;for(var i=0;i<buf.length;i++){var x=(buf[i]-128)/128;sum+=x*x}v=Math.min(1,Math.sqrt(sum/buf.length)*5)}
   else if(!audio.paused){v=0.35+0.35*Math.sin(Date.now()/70)}
   level=level*0.5+v*0.5;
-  mouth.setAttribute('ry',(1.5+level*9).toFixed(2));mouth.setAttribute('rx',(9-level*2).toFixed(2));lip.style.opacity=level>0.12?0:1;
+  mouth.setAttribute('ry',(1.5+level*4.5).toFixed(2));mouth.setAttribute('rx',(9-level*1.5).toFixed(2));lip.style.opacity=level>0.12?0:1;
   var t=audio.currentTime,c='';for(var j=0;j<cues.length;j++){if(t>=cues[j].s&&t<=cues[j].e+0.3){c=cues[j].t;break}}
   if(c&&bubble.textContent!==c)bubble.textContent=c;
   raf=requestAnimationFrame(loop);
