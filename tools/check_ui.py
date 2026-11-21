@@ -17,6 +17,7 @@ with sync_playwright() as p:
         page.evaluate('document.fonts.ready')
         page.screenshot(path=str(SHOTS / (name+'-intro.png')))
         page.locator('#introStart').click()
+        page.wait_for_timeout(2500)
         page.screenshot(path=str(SHOTS / (name+'-map.png')))
         page.get_by_role('button',name='全区概览',exact=True).click()
         page.wait_for_timeout(700)
