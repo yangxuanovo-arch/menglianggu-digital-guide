@@ -2,7 +2,9 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="崮上丰碑：孟良崮战役纪念地8点数字导览，实景图文、讲解字幕、研学问答与离线学习。">
+<link rel="preconnect" href="https://webrd01.is.autonavi.com">
 <title>崮上丰碑 · 孟良崮战役纪念地数字导览</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
@@ -22,19 +24,19 @@
 <!-- point detail sheet -->
 <section id="sheet" class="sheet hidden" aria-live="polite">
   <div class="sheet-handle"></div>
-  <button class="sheet-close" id="sheetClose">×</button>
+  <button class="sheet-close" id="sheetClose" aria-label="关闭详情">×</button>
   <div id="sheetBody"></div>
 </section>
 
 <!-- panels -->
 <section id="panel" class="panel hidden">
-  <div class="panel-head"><h2 id="panelTitle"></h2><button class="panel-close" id="panelClose">×</button></div>
+  <div class="panel-head"><h2 id="panelTitle"></h2><button class="panel-close" id="panelClose" aria-label="关闭面板">×</button></div>
   <div id="panelBody" class="panel-body"></div>
 </section>
 
 <!-- digital human -->
 <div id="guide" class="guide hidden">
-  <div id="bubble" class="bubble"></div>
+  <div id="bubble" class="bubble" aria-live="polite" aria-atomic="true"></div>
   <div class="avatar-wrap">
     <svg id="avatar" viewBox="0 0 200 240" aria-label="数字人讲解员 小崮">
       <defs>
@@ -97,7 +99,7 @@
 <div id="intro" class="intro">
   <div class="intro-card">
     <div class="intro-star">★</div>
-    <h2>崮上丰碑</h2>
+    <h2 id="introTitle">崮上丰碑</h2>
     <p class="intro-sub" id="introSub"></p>
     <ol class="intro-steps">
       <li><b>点地图上的红色点位</b>，查看图文介绍</li>

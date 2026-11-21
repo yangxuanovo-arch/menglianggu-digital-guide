@@ -48,7 +48,7 @@ with sync_playwright() as p:
         page.wait_for_function('__audios[0].currentTime>.2')
         assert page.locator('.voice-label').is_visible()
         assert page.locator('#guide').evaluate("e=>{const a=e.getBoundingClientRect(),b=document.querySelector('#topbar').getBoundingClientRect();return a.top>=b.bottom}")
-        for control in [page.locator('.leaflet-control-zoom'), page.locator('#topbar'), page.get_by_role('button',name='全区概览',exact=True)]:
+        for control in [page.locator('.leaflet-control-zoom'), page.locator('#topbar'), page.get_by_role('button',name='全区概览',exact=True,include_hidden=True)]:
             assert control.evaluate("e=>{const a=e.getBoundingClientRect(),b=document.querySelector('#guide').getBoundingClientRect();return a.right<=b.left||a.left>=b.right||a.bottom<=b.top||a.top>=b.bottom}"), (width,'guide overlaps control')
         page.locator('#gMin').click();assert page.locator('#guide').evaluate("e=>e.classList.contains('minimized')")
         page.locator('#gMin').click()

@@ -1,7 +1,7 @@
 from playwright.sync_api import sync_playwright
 
 with sync_playwright() as p:
-    browser = p.chromium.connect_over_cdp('http://localhost:29229')
+    browser = p.chromium.launch()
     for mode in ['normal', 'empty', 'blocked', 'write-blocked', 'malformed', 'null', 'array']:
         context = browser.new_context()
         context.add_init_script("""window.__audios=[];const NativeAudio=window.Audio;

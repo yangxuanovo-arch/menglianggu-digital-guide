@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright
 
 SHOTS = Path('/home/ubuntu/contest/shots')
 with sync_playwright() as p:
-    browser = p.chromium.connect_over_cdp('http://localhost:29229')
+    browser = p.chromium.launch()
     context = browser.new_context(viewport={'width':1280,'height':720},accept_downloads=True)
     context.add_init_script("""
       window.__audios=[]; window.__visited=[];
