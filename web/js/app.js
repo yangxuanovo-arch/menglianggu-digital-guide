@@ -37,8 +37,9 @@ function layoutMarkerAnchors(anchors,size,obstacles){
   for(var dx=-7;dx<=7;dx++)for(var dy=-7;dy<=7;dy++)steps.push([dx*46,dy*46]);
   steps.sort(function(a,b){return a[0]*a[0]+a[1]*a[1]*1.15-b[0]*b[0]-b[1]*b[1]*1.15});
   return anchors.map(function(a){
-    // Do not pull genuinely offscreen geographic points into a panned view.
-    if(a.x<0||a.x>size.x||a.y<0||a.y>size.y)return[0,0];
+    // A pin extends above its geographic tip: include partially visible pins,
+    // but do not pull fully offscreen points into a panned view.
+    if(a.x< -22||a.x>size.x+22||a.y< -4||a.y>size.y+38)return[0,0];
     var chosen=[Math.max(22,Math.min(size.x-22,a.x)),Math.max(42,Math.min(size.y-10,a.y))];
     for(var i=0;i<steps.length;i++){
       var x=Math.max(22,Math.min(size.x-22,a.x+steps[i][0])),y=Math.max(42,Math.min(size.y-10,a.y+steps[i][1]));
