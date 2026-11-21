@@ -23,8 +23,8 @@ vec.addTo(map);
 var poiLayer=L.layerGroup().addTo(map),routeLayer=L.layerGroup(),ctxLayer=L.layerGroup();
 L.control.layers({'标准地图':vec,'卫星影像':sat},{'推荐路线':routeLayer,'区位与交通':ctxLayer},{position:'topright'}).addTo(map);
 L.control.scale({imperial:false}).addTo(map);
-var markers={};
-function icon(p){var cls='poi'+(stamps[p.id]?' done':'')+(current===p.id?' active':'');return L.divIcon({className:'',html:'<div class="'+cls+'"><span>'+p.no+'</span></div>',iconSize:[34,34],iconAnchor:[17,34]})}
+var markers={},markerOffsets={};
+function icon(p){var cls='poi'+(stamps[p.id]?' done':'')+(current===p.id?' active':''),o=markerOffsets[p.id]||[0,0];return L.divIcon({className:'',html:'<div class="'+cls+'"><span>'+p.no+'</span></div>',iconSize:[34,34],iconAnchor:[17-o[0],34-o[1]]})}
 var current=null;
 G.points.forEach(function(p){
   var m=L.marker(P(p),{icon:icon(p),title:p.name}).addTo(poiLayer);
@@ -32,19 +32,23 @@ G.points.forEach(function(p){
   m.on('click',function(){openPoint(p.id)});markers[p.id]=m;
 });
 function refreshIcons(){G.points.forEach(function(p){markers[p.id].setIcon(icon(p))})}
+function separateMarkers(){var used=[];G.points.forEach(function(p){var a=map.latLngToContainerPoint(P(p)),x=a.x,y=a.y,o=[0,0];for(var n=0;n<12;n++){o=[n?Math.ceil(n/2)*54*(n%2?1:-1):0,0];x=a.x+o[0];if(used.every(function(b){return Math.hypot(x-b[0],y-b[1])>=52}))break}markerOffsets[p.id]=o;used.push([x,y])});refreshIcons()}
+map.on('zoomend moveend',separateMarkers);
 var bounds=L.latLngBounds(G.points.map(P));
 var mountainBounds=L.latLngBounds(G.points.filter(function(p){return p.id!=='hall'}).map(P));
 function home(){map.fitBounds(mountainBounds,{padding:[60,60],maxZoom:16})}
 home();
+separateMarkers();
+var hallControl=L.control({position:'bottomleft'});
+hallControl.onAdd=function(){var b=L.DomUtil.create('button','btn-ghost');b.id='hallShortcut';b.type='button';b.textContent='1 山下纪念馆';b.title='前往山下纪念馆；相邻点标记为方便点击作轻微错位';L.DomEvent.disableClickPropagation(b);b.onclick=function(){openPoint('hall')};return b};hallControl.addTo(map);
 
 /* route */
 var R=G.route,rp=R.order.map(function(id){return P(byId(id))});
-L.polyline(rp,{color:'#b71c1c',weight:5,opacity:.85,dashArray:'10 8'}).addTo(routeLayer);
-R.legs.forEach(function(l){var a=P(byId(l.from)),b=P(byId(l.to));L.marker([(a[0]+b[0])/2,(a[1]+b[1])/2],{interactive:false,icon:L.divIcon({className:'',html:'<span class="leg-label">'+esc(l.time)+'</span>',iconSize:null})}).addTo(routeLayer)});
+R.legs.forEach(function(l){var a=P(byId(l.from)),b=P(byId(l.to)),transport=l.time==='乘车/景区交通';L.polyline([a,b],{color:transport?'#586268':'#b71c1c',weight:transport?2:5,opacity:.85,dashArray:transport?'3 8':'10 8',className:transport?'transport-line':'walk-line'}).addTo(routeLayer);L.marker([(a[0]+b[0])/2,(a[1]+b[1])/2],{interactive:false,icon:L.divIcon({className:'',html:'<span class="leg-label'+(transport?' transport-label':'')+'">'+esc(l.time)+'</span>',iconSize:null})}).addTo(routeLayer)});
 routeLayer.addTo(map);
 function updateMapLabels(){map.getContainer().classList.toggle('detail-labels',map.getZoom()>=17)}
 map.on('zoomend',updateMapLabels);updateMapLabels();
-var overview=L.control({position:'bottomright'});
+var overview=L.control({position:'topright'});
 overview.onAdd=function(){var b=L.DomUtil.create('button','btn-ghost');b.type='button';b.textContent='全区概览';L.DomEvent.disableClickPropagation(b);b.onclick=function(){map.fitBounds(bounds,{padding:[50,50]})};return b};overview.addTo(map);
 /* context */
 var site=P(G.site);
@@ -52,10 +56,10 @@ var site=P(G.site);
 L.circleMarker(site,{radius:9,color:'#fff',weight:3,fillColor:'#b71c1c',fillOpacity:1}).addTo(ctxLayer).bindPopup('<b>'+esc(G.site.name)+'</b><br>'+esc(G.site.address));
 function byId(id){for(var i=0;i<G.points.length;i++)if(G.points[i].id===id)return G.points[i]}
 function showContext(){closeAll();ctxLayer.addTo(map);var b=L.latLngBounds([site].concat((G.context||[]).map(P)));map.fitBounds(b,{padding:[40,40]});openPanel('区位与交通',contextHtml())}
-function contextHtml(){var h='<p><b>'+esc(G.site.name)+'</b><br>'+esc(G.site.address)+'</p><p>'+esc(G.site.location)+'</p>';(G.context||[]).forEach(function(c){h+='<div class="leg"><div class="no">⌖</div><div><b>'+esc(c.name)+'</b><br><small>'+esc(c.desc)+'</small></div></div>'});h+=srcHtml(G.site.sources);h+='<p><button class="btn-ghost" id="ctxBack">返回景区导览</button></p>';return h}
+function contextHtml(){var h='<p><b>'+esc(G.site.name)+'</b><br>'+esc(G.site.address)+'</p><p>'+esc(G.site.location)+'</p>';(G.context||[]).forEach(function(c){h+='<div class="leg"><div class="no">●</div><div><b>'+esc(c.name)+'</b><br><small>'+esc(c.desc)+'</small></div></div>'});h+=srcHtml(G.site.sources);h+='<p><button class="btn-ghost" id="ctxBack">返回景区导览</button></p>';return h}
 
 /* ---------- audio + digital human ---------- */
-var audio=new Audio(),actx,analyser,srcNode,buf,cues=[],raf,onEnd=null,playingId=null;
+var audio=new Audio(),actx,analyser,srcNode,buf,cues=[],raf,onEnd=null,playingId=null,subtitleRequest=null,speechVersion=0;
 audio.preload='auto';
 var mouth=$('#mouth'),lip=$('#lip'),bubble=$('#bubble'),guide=$('#guide');
 function ensureCtx(){if(actx)return;try{actx=new (window.AudioContext||window.webkitAudioContext)();analyser=actx.createAnalyser();analyser.fftSize=512;srcNode=actx.createMediaElementSource(audio);srcNode.connect(analyser);analyser.connect(actx.destination);buf=new Uint8Array(analyser.fftSize)}catch(e){analyser=null}}
@@ -74,31 +78,36 @@ function loop(){
 function speak(id,fallbackText,cb){
   ensureCtx();if(actx&&actx.state==='suspended')actx.resume();
   stopSpeak(true);playingId=id;onEnd=cb||null;guide.classList.remove('hidden');bubble.textContent=fallbackText?fallbackText.slice(0,40)+'…':'';$('#gPause').textContent='暂停';
-  cues=[];fetch('audio/'+id+'.srt').then(function(r){return r.ok?r.text():''}).then(function(t){if(playingId===id)cues=parseSrt(t)}).catch(function(){});
+  var version=speechVersion;subtitleRequest=window.AbortController?new AbortController():null;
+  fetch('audio/'+id+'.srt',subtitleRequest?{signal:subtitleRequest.signal}:{}).then(function(r){return r.ok?r.text():''}).then(function(t){if(playingId===id&&speechVersion===version)cues=parseSrt(t)}).catch(function(){});
   audio.src='audio/'+id+'.mp3';audio.currentTime=0;
   var pr=audio.play();if(pr&&pr.catch)pr.catch(function(){toast('请点击页面后重试播放')});
   cancelAnimationFrame(raf);loop();
 }
-function stopSpeak(keep){audio.pause();onEnd=null;playingId=null;if(!keep){guide.classList.add('hidden');cancelAnimationFrame(raf)}}
-audio.addEventListener('ended',function(){var f=onEnd;onEnd=null;var id=playingId;playingId=null;mouth.setAttribute('ry',1.5);lip.style.opacity=1;if(f)f(id)});
+function stopSpeak(keep){audio.pause();onEnd=null;playingId=null;cues=[];bubble.textContent='';speechVersion++;if(subtitleRequest){subtitleRequest.abort();subtitleRequest=null}if(!keep){guide.classList.add('hidden');cancelAnimationFrame(raf)}}
+audio.addEventListener('ended',function(){var f=onEnd;onEnd=null;var id=playingId;playingId=null;mouth.setAttribute('ry',1.5);lip.style.opacity=1;if(f)f(id);var status=$('#panelAudioStatus');if(status)status.textContent='讲解已完成，印章已保存'});
 $('#gPause').onclick=function(){if(audio.paused){audio.play();this.textContent='暂停'}else{audio.pause();this.textContent='继续'}};
-$('#gStop').onclick=function(){touring=false;stopSpeak(false)};
+$('#gStop').onclick=function(){stopTour();stopSpeak(false)};
+var minimise=document.createElement('button');minimise.id='gMin';minimise.type='button';minimise.textContent='收起';minimise.onclick=function(){var small=guide.classList.toggle('minimized');minimise.textContent=small?'展开':'收起';minimise.setAttribute('aria-expanded',String(!small))};$('.guide-ctrl').appendChild(minimise);
 
 /* ---------- point sheet ---------- */
 function srcHtml(s){if(!s||!s.length)return'';return'<div class="src">资料来源：'+s.map(function(x,i){return'['+(i+1)+'] <a href="'+esc(x.u)+'" target="_blank" rel="noopener">'+esc(x.t)+'</a>'}).join('；')+'</div>'}
 function openPoint(id,opts){
+  if(!opts||!opts.autoplay)stopTour();
+  stopSpeak(false);setTab('map');
   var p=byId(id);current=id;refreshIcons();closePanel();
   map.flyTo(P(p),Math.max(map.getZoom(),16),{duration:.8});
-  var h='<h2>'+p.no+'. '+esc(p.name)+'</h2><div class="meta">'+esc(p.type||'')+(p.coordNote?' · '+esc(p.coordNote):'')+'</div>';
-  h+='<div class="cover">'+(p.img?'<img src="'+esc(p.img)+'" alt="">':'')+'<span style="position:relative">'+esc(p.tagline||G.site.name)+'</span></div>';
-  h+='<div class="actions"><button class="btn-primary" id="btnListen">▶ 听讲解</button><button class="btn-ghost" id="btnStamp">'+(stamps[id]?'✔ 已打卡':'打卡集章')+'</button></div>';
+  var h='<h2>'+p.no+'. '+esc(p.name)+'</h2><div class="meta">'+esc(p.type||'')+'</div>';
+  h+='<div class="cover'+(p.img?' has-photo':'')+'">'+(p.img?'<img src="'+esc(p.img)+'" alt="'+esc(p.imgAlt||p.name)+'" onerror="this.parentNode.classList.remove(\'has-photo\');this.remove()">':'')+'<span style="position:relative">'+esc(p.tagline||G.site.name)+'</span></div>';
+  if(p.imageCredit){var credit=p.imageCredit;h+='<div class="src photo-credit">图：'+esc(credit.author)+' / <a href="'+esc(credit.licenseUrl)+'" target="_blank" rel="noopener">'+esc(credit.license)+'</a> / 来源 <a href="'+esc(credit.source)+'" target="_blank" rel="noopener">Wikimedia Commons</a>（缩放压缩，封面裁切）</div>'}
+  h+='<div class="actions"><button class="btn-primary" id="btnListen">▶ 听讲解（听完集章）</button><button class="btn-ghost" id="btnStamp">'+(stamps[id]?'✔ 已打卡':'现场定位打卡')+'</button></div>';
   if(!stamps[id])h+='<p><button class="btn-ghost" id="btnRemote">非现场打卡（听完本点讲解）</button></p>';
   p.text.split(/\n+/).forEach(function(t){h+='<p class="text">'+esc(t)+'</p>'});
   if(p.facts&&p.facts.length)h+='<div class="facts">'+p.facts.map(esc).join('<br>')+'</div>';
   h+=srcHtml(p.sources);
   var nx=nextOf(id);if(nx)h+='<p><button class="btn-ghost" id="btnNext">下一站：'+esc(nx.name)+' →</button></p>';
   $('#sheetBody').innerHTML=h;$('#sheet').classList.remove('hidden');$('#sheet').scrollTop=0;guide.classList.add('with-sheet');
-  $('#btnListen').onclick=function(){speak(id,p.text,function(){stamp(id,true);if(touring)setTimeout(tourNext,1200)})};
+  $('#btnListen').onclick=function(){speak(id,p.text,function(){stamp(id,true);if(touring)tourTimer=setTimeout(tourNext,1200)})};
   $('#btnStamp').onclick=function(){if(stamps[id])return;tryGeo(id)};
   var remote=$('#btnRemote');if(remote)remote.onclick=function(){if(stamps[id]){toast('本点已完成打卡');return}if(playingId===id){toast('听完本点讲解将自动获得印章');return}$('#btnListen').click()};
   if(nx)$('#btnNext').onclick=function(){openPoint(nx.id)};
@@ -114,12 +123,12 @@ function tryGeo(id){
 function dist(a,b,c,d){var r=6371000,x=(c-a)*PI/180,y=(d-b)*PI/180,s=Math.sin(x/2)*Math.sin(x/2)+Math.cos(a*PI/180)*Math.cos(c*PI/180)*Math.sin(y/2)*Math.sin(y/2);return 2*r*Math.asin(Math.sqrt(s))}
 function stamp(id,quiet){if(stamps[id])return;stamps[id]=Date.now();save();refreshIcons();var b=$('#btnStamp');if(b&&current===id)b.textContent='✔ 已打卡';toast('获得印章：'+byId(id).name);if(allStamped()&&!stamps.__all){stamps.__all=1;save();setTimeout(function(){toast('全部点位已打卡！去“研学打卡”领取证书')},2000)}}
 function allStamped(){return G.points.every(function(p){return stamps[p.id]})}
-function closeSheet(){$('#sheet').classList.add('hidden');guide.classList.remove('with-sheet');current=null;refreshIcons()}
-$('#sheetClose').onclick=closeSheet;
+function closeSheet(){stopTour();$('#sheet').classList.add('hidden');guide.classList.remove('with-sheet');current=null;refreshIcons()}
+$('#sheetClose').onclick=function(){closeSheet();setTab('map')};
 
 /* ---------- panels ---------- */
-function openPanel(t,h){$('#panelTitle').textContent=t;$('#panelBody').innerHTML=h;$('#panel').classList.remove('hidden');$('#panel').scrollTop=0;var b=$('#ctxBack');if(b)b.onclick=function(){closePanel();map.removeLayer(ctxLayer);home();setTab('map')}}
-function closePanel(){$('#panel').classList.add('hidden')}
+function openPanel(t,h){stopTour();guide.classList.add('hidden');if(playingId&&!audio.paused)h='<p id="panelAudioStatus">AI合成语音 · 正在讲解：'+esc(byId(playingId)?byId(playingId).name:G.site.name)+' <button class="btn-ghost" id="panelAudioStop">停止讲解</button></p>'+h;$('#panelTitle').textContent=t;$('#panelBody').innerHTML=h;$('#panel').classList.remove('hidden');$('#panel').scrollTop=0;var b=$('#ctxBack');if(b)b.onclick=function(){closePanel();setTab('map')};var stop=$('#panelAudioStop');if(stop)stop.onclick=function(){stopSpeak(false);$('#panelAudioStatus').textContent='讲解已停止；听完本点讲解可集章'}}
+function closePanel(){$('#panel').classList.add('hidden');if(map.hasLayer(ctxLayer)){map.removeLayer(ctxLayer);home()}}
 $('#panelClose').onclick=function(){closePanel();setTab('map')};
 function closeAll(){closeSheet();closePanel()}
 function setTab(t){document.querySelectorAll('#tabbar button').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t)})}
@@ -128,14 +137,15 @@ document.querySelectorAll('#tabbar button').forEach(function(b){b.onclick=functi
 
 function routePanel(){
   routeLayer.addTo(map);home();
-  var h='<p>'+esc(R.intro)+'</p><p><b>全程约 '+esc(R.total)+'</b></p>';
-  R.order.forEach(function(id,i){var p=byId(id),l=R.legs[i-1];if(l)h+='<div class="leg"><div class="no" style="background:#fff;color:#b71c1c;border:1px dashed #b71c1c">↓</div><div><small>'+(l.time==='乘车/景区交通'?'':'步行约 ')+esc(l.dist)+' · '+esc(l.time)+(l.note?' · '+esc(l.note):'')+'</small></div></div>';h+='<div class="leg"><div class="no">'+p.no+'</div><div><b><a href="#" data-id="'+id+'">'+esc(p.name)+'</a></b><br><small>'+esc(p.tagline||'')+'</small></div></div>'});
-  h+='<p style="font-size:12px;color:#7a6a5f">'+esc(R.method||'')+'</p><button class="btn-primary" id="btnTour" style="width:100%">▶ 跟随数字人小崮全程导览</button>';
+  var h='<p>'+esc(R.intro)+'</p><p><b>全程约 '+esc(R.total)+'</b></p><p>灰色细点线：乘车／景区交通<br>红色虚线：山上步行游线</p>';
+  R.order.forEach(function(id,i){var p=byId(id),l=R.legs[i-1];if(l)h+='<div class="leg"><div class="no" style="background:#fff;color:#b71c1c;border:1px dashed #b71c1c">↓</div><div><small>'+(l.time==='乘车/景区交通'?'山下至山上：乘车／景区交通，请以现场安排为准':'步行约 '+esc(l.dist)+' · '+esc(l.time))+'</small></div></div>';h+='<div class="leg"><div class="no">'+p.no+'</div><div><b><a href="#" data-id="'+id+'">'+esc(p.name)+'</a></b><br><small>'+esc(p.tagline||'')+'</small></div></div>'});
+  h+='<p style="font-size:12px;color:#7a6a5f">距离与用时为估算，请以景区现场指示为准。</p><button class="btn-primary" id="btnTour" style="width:100%">▶ 跟随数字人小崮全程导览</button>';
   openPanel('推荐游览路线',h);
   document.querySelectorAll('#panelBody a[data-id]').forEach(function(a){a.onclick=function(e){e.preventDefault();openPoint(a.dataset.id)}});
   $('#btnTour').onclick=startTour;
 }
-var touring=false,tourIdx=0;
+var touring=false,tourIdx=0,tourTimer=null;
+function stopTour(){var active=touring;touring=false;clearTimeout(tourTimer);tourTimer=null;if(active)stopSpeak(false)}
 function startTour(){closeAll();touring=true;tourIdx=0;speak('intro',G.narration.intro,function(){if(touring)tourNext()});map.flyToBounds(bounds,{padding:[50,50]})}
 function tourNext(){if(!touring)return;if(tourIdx>=R.order.length){touring=false;closeSheet();home();speak('outro',G.narration.outro,function(){stopSpeak(false);stampPanel();setTab('stamps')});return}openPoint(R.order[tourIdx++],{autoplay:true})}
 
@@ -152,7 +162,7 @@ function stampPanel(){
   document.querySelectorAll('.stamp[data-id]').forEach(function(s){s.onclick=function(){openPoint(s.dataset.id)}});
   var q=document.querySelector('.stamp[data-q]');q.onclick=function(){setTab('quiz');quizPanel()};
   $('#btnReset').onclick=function(){if(confirm('确定清空打卡记录？')){stamps={};save();refreshIcons();stampPanel()}};
-  var bc=$('#btnCert');if(bc)bc.onclick=function(){drawCert(($('#certName').value||'红色研学者').trim())};
+  var bc=$('#btnCert');if(bc)bc.onclick=function(){var name=$('#certName').value.trim();if(!name){toast('请先填写姓名');$('#certName').focus();return}drawCert(name)};
 }
 async function drawCert(name){
   try{await document.fonts.load('30px GuideCJK')}catch(e){}
@@ -180,8 +190,10 @@ function aboutPanel(){
   if(S.facts)h+='<div class="facts">'+S.facts.map(esc).join('<br>')+'</div>';
   h+='<p><button class="btn-ghost" id="aCtx">查看区位与交通</button></p>';
   h+='<h3>战役概况</h3>'+G.battle.map(function(t){return'<p class="text" style="text-indent:2em">'+esc(t)+'</p>'}).join('')+srcHtml(G.battleSources);
-  h+='<h3>关于本作品</h3><p>'+esc(G.about.work)+'</p><p style="font-size:13px">'+esc(G.about.team)+'</p>';
+  h+='<h3>关于本作品</h3><p>'+esc(G.about.work)+'</p>';
+  if(G.about.team&&!/[【】]/.test(G.about.team))h+='<p style="font-size:13px">'+esc(G.about.team)+'</p>';
   h+='<h3>素材与 AI 使用声明</h3><p style="font-size:13px">'+esc(G.about.ai)+'</p>';
+  var photos=G.points.filter(function(p){return p.imageCredit});if(photos.length){h+='<h3>实景图片署名</h3>';photos.forEach(function(p){var c=p.imageCredit;h+='<p class="src">'+esc(p.name)+'：'+esc(c.author)+' / <a href="'+esc(c.licenseUrl)+'" target="_blank" rel="noopener">'+esc(c.license)+'</a> / <a href="'+esc(c.source)+'" target="_blank" rel="noopener">Wikimedia Commons</a>。'+esc(c.changes)+'</p>'})}
   openPanel('关于',h);$('#aCtx').onclick=showContext;
 }
 $('#btnLocate').onclick=showContext;
@@ -189,6 +201,5 @@ $('#btnHelp').onclick=function(){$('#intro').classList.remove('hidden')};
 $('#introSub').textContent=G.site.name+' · '+G.site.addressShort;
 $('#introStart').onclick=function(){$('#intro').classList.add('hidden');ensureCtx();toast('点击地图上的红色点位开始')};
 $('#introTour').onclick=function(){$('#intro').classList.add('hidden');startTour()};
-if(location.hash==='#tour'){/* for demo recording */}
 window.__guide={openPoint:openPoint,startTour:startTour,showContext:showContext,stampPanel:stampPanel,quizPanel:quizPanel,routePanel:routePanel};
 })();
