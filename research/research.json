@@ -1,0 +1,1097 @@
+{
+  "schema_version": "1.0",
+  "researched_at": "2026-11-21",
+  "language": "zh-CN",
+  "project": "红色齐鲁 学生组 任务一：孟良崮战役纪念地H5数字导览研究",
+  "status": "研究稿；点位存在及地图来源可查，路线为估算非实测导航",
+  "rules_review": {
+    "file": "/home/ubuntu/contest/rules.txt",
+    "sections": [
+      "四（一）任务一",
+      "四（二）作品要求",
+      "六 评分标准",
+      "七 违规与扣分规则"
+    ],
+    "requirements": [
+      "真实地理底图及城区交通关系",
+      "不少于3点，方位与实地一致",
+      "各点图文，建议150—400字，至少1点配音或音效",
+      "点击详情、缩放平移、至少1条含顺序和步行时长的路线",
+      "史实逐项列来源、原创表述、AI使用如实标注"
+    ],
+    "scoring": "地图60分、教育内容15分、技术完成度10分、文档5分、答辩10分；问答为选做创新。规则七缺项描述与任务任选一的表述存在张力，需由组委会最终解释。"
+  },
+  "editorial_policy": "介绍为AI辅助原创研究文案，事实链接逐点列出，倡议与学习建议不作历史事实；无虚构对话。地图事实与史实分开取证。不得把现代陈列设施自动当作1947年原物。未获得可直接使用的配音和图片授权文件。",
+  "sources": {
+    "S1": {
+      "title": "孟良崮战役纪念馆简介",
+      "publisher": "临沂市人民政府",
+      "date": "2019-10-16",
+      "url": "https://www.linyi.gov.cn/info/4749/210999.htm"
+    },
+    "S2": {
+      "title": "孟良崮旅游区",
+      "publisher": "蒙阴县人民政府／蒙阴旅游发展服务中心",
+      "date": "2022-12-29",
+      "url": "http://www.mengyin.gov.cn/info/1461/67173.htm"
+    },
+    "S3": {
+      "title": "孟良崮旅游区",
+      "publisher": "临沂市文化和旅游局",
+      "date": "2024-03-25",
+      "url": "https://wgxj.linyi.gov.cn/info/1494/52944.htm"
+    },
+    "S4": {
+      "title": "孟良崮战役革命纪念馆",
+      "publisher": "山东地情档案 文物库",
+      "url": "https://shandong-chorography.org/database/a/section/70/article/699/"
+    },
+    "S5": {
+      "title": "孟良崮战役：山地运动歼灭战的范例",
+      "publisher": "人民网党史频道／学习时报",
+      "date": "2018-09-19",
+      "url": "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+    },
+    "S6": {
+      "title": "5月13日 党史回眸",
+      "publisher": "中共中央党史和文献研究院",
+      "url": "https://www.dswxyjy.org.cn/GB/434461/434466/434708/index.html"
+    },
+    "S7": {
+      "title": "孟良崮染“红”山东蒙阴旅游业",
+      "publisher": "山东省文化和旅游厅转载琅琊新闻网",
+      "date": "2008-09-09",
+      "url": "http://whhly.shandong.gov.cn/art/2008/9/9/art_68380_6748258.html"
+    },
+    "S8": {
+      "title": "临沂旅游",
+      "publisher": "央视国际",
+      "date": "2005-04-15",
+      "url": "https://www.cctv.com/travel/special/2005sdy/20050415/102348.shtml"
+    },
+    "S9": {
+      "title": "孟良崮战役纪念馆参观攻略",
+      "publisher": "临沂本地宝（非官方、过期资料）",
+      "date": "2021-09-28",
+      "url": "http://linyi.bendibao.com/jieri/guoqing/2021928/9469.shtm"
+    },
+    "S10": {
+      "title": "孟良崮战役纪念馆免费开放",
+      "publisher": "齐鲁晚报",
+      "date": "2011-06-27",
+      "url": "https://sjb.qlwb.com.cn/html/2011-06/27/content_149259.htm?div=-1"
+    },
+    "M0": {
+      "title": "OSM bbox 原始地图数据",
+      "publisher": "OpenStreetMap contributors",
+      "url": "https://www.openstreetmap.org/api/0.6/map?bbox=118.175,35.53,118.205,35.585",
+      "local_file": "osm-source.xml",
+      "license": "ODbL 1.0; 地图署名 © OpenStreetMap contributors",
+      "note": "直接 API 获取成功；Nominatim 英文检索空结果，Overpass 主站406、备用站超时，不能将检索失败写作点位不存在。"
+    },
+    "M1": {
+      "title": "孟良崮战役纪念馆 高德 POI",
+      "publisher": "高德地图",
+      "url": "https://www.amap.com/place/B021B0ACI6",
+      "note": "页面列35.535397,118.187030；国内高德坐标应按GCJ-02处理，未直接作为WGS84使用。"
+    },
+    "P1": {
+      "title": "孟良崮战役遗址——华野战地指挥部",
+      "publisher": "Wikimedia Commons / Sprt98",
+      "date": "2024-04-19",
+      "url": "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——华野战地指挥部.jpg",
+      "note": "实地照片的文件说明用于交叉确认景点存在；不是史学权威，不能证明遗迹年代、原真性。图片未下载使用；复用须另核许可及署名。"
+    },
+    "P2": {
+      "title": "孟良崮战役遗址——华野战壕",
+      "publisher": "Wikimedia Commons / Sprt98",
+      "date": "2024-04-19",
+      "url": "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——华野战壕.jpg",
+      "note": "实地照片的文件说明用于交叉确认景点存在；不是史学权威，不能证明遗迹年代、原真性。图片未下载使用；复用须另核许可及署名。"
+    },
+    "P3": {
+      "title": "孟良崮战役遗址——铁索桥",
+      "publisher": "Wikimedia Commons / Sprt98",
+      "date": "2024-04-19",
+      "url": "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——铁索桥.jpg",
+      "note": "实地照片的文件说明用于交叉确认景点存在；不是史学权威，不能证明遗迹年代、原真性。图片未下载使用；复用须另核许可及署名。"
+    },
+    "P4": {
+      "title": "孟良崮战役遗址——炮轰石",
+      "publisher": "Wikimedia Commons / Sprt98",
+      "date": "2024-04-19",
+      "url": "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——炮轰石.jpg",
+      "note": "实地照片的文件说明用于交叉确认景点存在；不是史学权威，不能证明遗迹年代、原真性。图片未下载使用；复用须另核许可及署名。"
+    },
+    "P5": {
+      "title": "孟良崮战役遗址——弹击石",
+      "publisher": "Wikimedia Commons / Sprt98",
+      "date": "2024-04-19",
+      "url": "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——弹击石.jpg",
+      "note": "实地照片的文件说明用于交叉确认景点存在；不是史学权威，不能证明遗迹年代、原真性。图片未下载使用；复用须另核许可及署名。"
+    },
+    "P6": {
+      "title": "20140718 The site of Zhang Lingfu's death",
+      "publisher": "Wikimedia Commons / Windmemories",
+      "date": "2014-07-18",
+      "url": "https://commons.wikimedia.org/wiki/File:20140718_The_site_of_Zhang_Lingfu%27s_death.jpg"
+    },
+    "P7": {
+      "title": "20140718 Monument of Menglianggu Campaign",
+      "publisher": "Wikimedia Commons / Windmemories",
+      "date": "2014-07-18",
+      "url": "https://commons.wikimedia.org/wiki/File:20140718_Monument_of_Menglianggu_Campaign.jpg"
+    }
+  },
+  "points": [
+    {
+      "id": "hall",
+      "name": "孟良崮战役纪念馆",
+      "osm_type": "way",
+      "osm_id": "1527479851",
+      "facts": [
+        {
+          "text": "地址为临沂市蒙阴县垛庄镇泉桥村。",
+          "source_ids": [
+            "S3"
+          ],
+          "source_urls": [
+            "https://wgxj.linyi.gov.cn/info/1494/52944.htm"
+          ]
+        },
+        {
+          "text": "现有展馆2007年改造建设、3682平方米；市政府2019年资料列四个展厅。",
+          "source_ids": [
+            "S1"
+          ],
+          "source_urls": [
+            "https://www.linyi.gov.cn/info/4749/210999.htm"
+          ]
+        }
+      ],
+      "intro_sources": [
+        "S1",
+        "S3"
+      ],
+      "cautions": [
+        "坐标用于区位图；若实现门到门步行导航，需补馆门实测坐标。"
+      ],
+      "coordinate": {
+        "crs": "WGS84",
+        "lat": 35.53547435,
+        "lng": 118.1813824,
+        "source_url": "https://www.openstreetmap.org/way/1527479851",
+        "confidence": "中（园区定位，不是馆门）",
+        "method": "OSM同名park面全部节点经纬度包围盒中心；原始面为纪念园区范围，不能冒充展馆建筑中心或入口。与高德POI的经度偏移符合国内坐标系差异的量级，但未做独立测绘。",
+        "source_snapshot": "osm-source.xml",
+        "warning": "小数位来自数据库，不代表实测精度；实时可达性未核实。"
+      },
+      "introduction": "孟良崮战役纪念馆位于山东省临沂市蒙阴县垛庄镇泉桥村，是了解孟良崮战役与沂蒙人民支前历史的重要窗口。临沂市政府资料记载，现有展馆于2007年改造建设，总建筑面积3682平方米，以战役经过、拥军支前、情景体验、多媒体放映等内容开展教育。参观时，建议先从战役经过入手，再关注支前群众的贡献，把军事斗争与人民支持联系起来理解。这里既是回望历史的课堂，也是缅怀先烈、珍惜和平的场所。请保持肃静，以认真阅读与理性思考表达敬意。",
+      "introduction_source_urls": [
+        "https://www.linyi.gov.cn/info/4749/210999.htm",
+        "https://wgxj.linyi.gov.cn/info/1494/52944.htm"
+      ]
+    },
+    {
+      "id": "field-command",
+      "name": "华野战地指挥所（景区标识点）",
+      "osm_id": "11279609801",
+      "facts": [
+        {
+          "text": "OSM称华野战地指挥所，2024年实地照片说明称华野战地指挥部，确认景观存在。",
+          "source_ids": [
+            "P1"
+          ],
+          "source_urls": [
+            "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——华野战地指挥部.jpg"
+          ]
+        },
+        {
+          "text": "战役采取主攻与阻援相配合的部署。",
+          "source_ids": [
+            "S5"
+          ],
+          "source_urls": [
+            "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+          ]
+        }
+      ],
+      "intro_sources": [
+        "P1",
+        "S5"
+      ],
+      "cautions": [
+        "存在确认；旧址真实性、使用者未核实。不得与其他地区的华东野战军总部旧址混同。"
+      ],
+      "coordinate": {
+        "crs": "WGS84",
+        "lat": 35.5718898,
+        "lng": 118.1924837,
+        "source_url": "https://www.openstreetmap.org/node/11279609801",
+        "confidence": "中高（OSM点位+独立实地照片说明确认存在；未经现场GPS复测）",
+        "method": "OSM命名节点原始lat/lon；不是从照片推算。",
+        "source_snapshot": "osm-source.xml",
+        "warning": "小数位来自数据库，不代表实测精度；实时可达性未核实。"
+      },
+      "introduction": "华野战地指挥所是孟良崮山上遗址游线中的一处标识点，开放地图以此名称收录，实地照片的文件说明也记录了“华野战地指挥部”这一景观。在这里，可以结合纪念馆介绍，思考山地作战中指挥、联络与部队协同的重要性。孟良崮战役由华东野战军组织实施，主攻部队与阻援部队相互配合，形成内歼外阻的部署。需要特别说明，本点的具体使用部队、历史建筑遗存及复建情况尚未得到权威材料确认，不应把它直接称作陈毅、粟裕的战役总指挥部旧址，更不宜编写未经证实的现场对话。",
+      "introduction_source_urls": [
+        "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——华野战地指挥部.jpg",
+        "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+      ]
+    },
+    {
+      "id": "trench",
+      "name": "华野战壕（景区标识点）",
+      "osm_id": "11279609802",
+      "facts": [
+        {
+          "text": "2024年实地照片文件说明记录华野战壕。",
+          "source_ids": [
+            "P2"
+          ],
+          "source_urls": [
+            "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——华野战壕.jpg"
+          ]
+        },
+        {
+          "text": "华东野战军五个纵队主攻围歼、四个纵队阻援。",
+          "source_ids": [
+            "S5"
+          ],
+          "source_urls": [
+            "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+          ]
+        }
+      ],
+      "intro_sources": [
+        "P2",
+        "S5"
+      ],
+      "cautions": [
+        "未核实原始战壕保存比例与所属具体部队。"
+      ],
+      "coordinate": {
+        "crs": "WGS84",
+        "lat": 35.5721803,
+        "lng": 118.192971,
+        "source_url": "https://www.openstreetmap.org/node/11279609802",
+        "confidence": "中高（OSM点位+独立实地照片说明确认存在；未经现场GPS复测）",
+        "method": "OSM命名节点原始lat/lon；不是从照片推算。",
+        "source_snapshot": "osm-source.xml",
+        "warning": "小数位来自数据库，不代表实测精度；实时可达性未核实。"
+      },
+      "introduction": "华野战壕是孟良崮战役遗址游线上的一处重要观察场景，开放地图与2024年的实地照片文件说明均记录了这一名称。参观时，可把眼前的山地环境与战役资料对照，理解地形、隐蔽和协同对作战的影响。1947年5月，华东野战军在孟良崮地区集中兵力，以主攻部队围歼、阻援部队钳制援敌，取得战役胜利。对这处战壕，应把可见景观与已证实史实区分开来：现存形态是否经过修整、具体由哪支部队使用，仍需现场说明或文物档案佐证。请勿攀踩或搬动遗址构件，以文明参观表达对历史的尊重。",
+      "introduction_source_urls": [
+        "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——华野战壕.jpg",
+        "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+      ]
+    },
+    {
+      "id": "bridge",
+      "name": "铁索桥（步游道场景）",
+      "osm_type": "way",
+      "osm_id": "1217348083",
+      "facts": [
+        {
+          "text": "2024年实地照片说明记录铁索桥。",
+          "source_ids": [
+            "P3"
+          ],
+          "source_urls": [
+            "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——铁索桥.jpg"
+          ]
+        },
+        {
+          "text": "景区包含山下纪念园区与山上战役遗址观光区，并建设登山步游道。",
+          "source_ids": [
+            "S2"
+          ],
+          "source_urls": [
+            "http://www.mengyin.gov.cn/info/1461/67173.htm"
+          ]
+        }
+      ],
+      "intro_sources": [
+        "P3",
+        "S2"
+      ],
+      "cautions": [
+        "现代游览设施，不作为战争遗物；实时开放和限流情况未核实。"
+      ],
+      "coordinate": {
+        "crs": "WGS84",
+        "lat": 35.57426435,
+        "lng": 118.1936914,
+        "source_url": "https://www.openstreetmap.org/way/1217348083",
+        "confidence": "中高（OSM点位+独立实地照片说明确认存在；未经现场GPS复测）",
+        "method": "OSM铁索桥两端节点算术中点；way标记bridge=yes、highway=footway。",
+        "source_snapshot": "osm-source.xml",
+        "warning": "小数位来自数据库，不代表实测精度；实时可达性未核实。"
+      },
+      "introduction": "铁索桥是孟良崮战役遗址游览区域的一处步行设施，开放地图将其标注为步行桥，2024年的实地照片说明亦有记录。本导览将这里作为山地行走中的观察与休息节点，而不把它解释为1947年的战时建筑。蒙阴县政府资料介绍，景区由山下纪念园区和山上战役遗址观光区组成，并建设登山步游道，方便参观者循路了解纪念地。行经桥面时，请遵从现场标识、控制通行人数，不奔跑、不摇晃桥体。山路参观重在理解历史、缅怀先烈，应根据天气和体力安排行程，以安全、庄重的方式完成研学。",
+      "introduction_source_urls": [
+        "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——铁索桥.jpg",
+        "http://www.mengyin.gov.cn/info/1461/67173.htm"
+      ]
+    },
+    {
+      "id": "shell-rock",
+      "name": "炮轰石（OSM作“炮轰石”）",
+      "osm_id": "11279612572",
+      "facts": [
+        {
+          "text": "2024年实地照片文件说明记录炮轰石。",
+          "source_ids": [
+            "P4"
+          ],
+          "source_urls": [
+            "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——炮轰石.jpg"
+          ]
+        },
+        {
+          "text": "战场多山、道路少而窄；山地限制敌重装备部队机动。",
+          "source_ids": [
+            "S5"
+          ],
+          "source_urls": [
+            "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+          ]
+        }
+      ],
+      "intro_sources": [
+        "P4",
+        "S5"
+      ],
+      "cautions": [
+        "岩痕是否战损、年代、武器类型均未核实。"
+      ],
+      "coordinate": {
+        "crs": "WGS84",
+        "lat": 35.5765428,
+        "lng": 118.1931191,
+        "source_url": "https://www.openstreetmap.org/node/11279612572",
+        "confidence": "中高（OSM点位+独立实地照片说明确认存在；未经现场GPS复测）",
+        "method": "OSM命名节点原始lat/lon；不是从照片推算。",
+        "source_snapshot": "osm-source.xml",
+        "warning": "小数位来自数据库，不代表实测精度；实时可达性未核实。"
+      },
+      "introduction": "炮轰石是孟良崮战役遗址游线中以岩石为载体的一处命名景点，开放地图及2024年实地照片的文件说明均收录此名。参观者可从这里观察山地景观，结合可靠史料认识孟良崮战役的地形条件。人民网党史资料指出，当地多山，道路少而窄，山地条件限制了重装备部队的机动，也有利于华东野战军隐蔽集结与穿插。需要注意，景点名称并不能单独证明每处岩痕的成因和年代，本导览不据此推断具体炮弹、射击方向或作战部队。请勿敲击岩石、采集碎片，在尊重史实的前提下体会和平生活的来之不易。",
+      "introduction_source_urls": [
+        "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——炮轰石.jpg",
+        "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+      ]
+    },
+    {
+      "id": "bullet-rock",
+      "name": "弹击石",
+      "osm_id": "11279612571",
+      "facts": [
+        {
+          "text": "2024年实地照片说明记录弹击石。",
+          "source_ids": [
+            "P5"
+          ],
+          "source_urls": [
+            "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——弹击石.jpg"
+          ]
+        },
+        {
+          "text": "战役于1947年5月13日至16日在山东蒙阴地区进行，全歼整编第74师并重创援敌。",
+          "source_ids": [
+            "S5"
+          ],
+          "source_urls": [
+            "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+          ]
+        }
+      ],
+      "intro_sources": [
+        "P5",
+        "S5"
+      ],
+      "cautions": [
+        "每一岩痕的年代、成因及对应战斗未经鉴定，不能写为确定事实。"
+      ],
+      "coordinate": {
+        "crs": "WGS84",
+        "lat": 35.5775178,
+        "lng": 118.1933534,
+        "source_url": "https://www.openstreetmap.org/node/11279612571",
+        "confidence": "中高（OSM点位+独立实地照片说明确认存在；未经现场GPS复测）",
+        "method": "OSM命名节点原始lat/lon；不是从照片推算。",
+        "source_snapshot": "osm-source.xml",
+        "warning": "小数位来自数据库，不代表实测精度；实时可达性未核实。"
+      },
+      "introduction": "弹击石是孟良崮山上战役遗址区域的一处景点，开放地图记录了其位置，2024年的实地照片文件说明也可交叉确认名称。走近这一场景，宜先阅读现场说明，再联系战役全貌理解历史。1947年5月13日至16日，华东野战军在山东蒙阴地区实施山地运动歼灭战，全歼国民党军整编第74师，并打击援敌。革命先烈为胜利付出的牺牲，不应被简化为对武器或战斗场面的猎奇。本导览不对岩面痕迹作未经鉴定的解释，也不编造弹痕对应的个人故事。请爱护景观，以审慎求实的态度开展观察和学习，铭记历史、珍惜和平。",
+      "introduction_source_urls": [
+        "https://commons.wikimedia.org/wiki/File:孟良崮战役遗址——弹击石.jpg",
+        "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+      ]
+    },
+    {
+      "id": "zhang-site",
+      "name": "击毙张灵甫之地（山洞标识点）",
+      "osm_id": "11279612624",
+      "facts": [
+        {
+          "text": "OSM点位标注击毙张灵甫之地，2014年照片说明记录该景点。",
+          "source_ids": [
+            "P6"
+          ],
+          "source_urls": [
+            "https://commons.wikimedia.org/wiki/File:20140718_The_site_of_Zhang_Lingfu%27s_death.jpg"
+          ]
+        },
+        {
+          "text": "整编第74师中将师长张灵甫在孟良崮战役中被击毙。",
+          "source_ids": [
+            "S6"
+          ],
+          "source_urls": [
+            "https://www.dswxyjy.org.cn/GB/434461/434466/434708/index.html"
+          ]
+        }
+      ],
+      "intro_sources": [
+        "P6",
+        "S6"
+      ],
+      "cautions": [
+        "采用官方党史的击毙表述；不演绎死亡过程；洞体历史原貌及现在可进入性未核实。"
+      ],
+      "coordinate": {
+        "crs": "WGS84",
+        "lat": 35.5792001,
+        "lng": 118.1889183,
+        "source_url": "https://www.openstreetmap.org/node/11279612624",
+        "confidence": "中高（OSM点位+独立实地照片说明确认存在；未经现场GPS复测）",
+        "method": "OSM命名节点原始lat/lon；不是从照片推算。",
+        "source_snapshot": "osm-source.xml",
+        "warning": "小数位来自数据库，不代表实测精度；实时可达性未核实。"
+      },
+      "introduction": "击毙张灵甫之地是孟良崮山上遗址区域的一处纪念标识点。开放地图收录了点名及铭文，2014年实地照片的文件说明也记录了此处。权威党史资料记载，1947年5月13日至16日，华东野战军在孟良崮地区全歼国民党军整编第七十四师等部，击毙中将师长张灵甫。参观本点，应把注意力放在战役经过、人民军队的牺牲奉献以及和平的历史价值上。对于山洞的改建情况和最后战斗的具体细节，本次研究没有获得足够的权威材料，不作戏剧化复原，也不编造临终言语。请遵循现场开放范围参观，不进入未开放洞穴。",
+      "introduction_source_urls": [
+        "https://commons.wikimedia.org/wiki/File:20140718_The_site_of_Zhang_Lingfu%27s_death.jpg",
+        "https://www.dswxyjy.org.cn/GB/434461/434466/434708/index.html"
+      ]
+    },
+    {
+      "id": "monument",
+      "name": "孟良崮战役纪念碑（山顶）",
+      "osm_id": "11279612625",
+      "facts": [
+        {
+          "text": "山顶建有纪念碑，三把刺刀造型象征野战军、地方军和民兵，胡耀邦题写碑名。",
+          "source_ids": [
+            "S8"
+          ],
+          "source_urls": [
+            "https://www.cctv.com/travel/special/2005sdy/20050415/102348.shtml"
+          ]
+        },
+        {
+          "text": "景区以纪念碑为主题设置山上战役遗址观光区。",
+          "source_ids": [
+            "S2"
+          ],
+          "source_urls": [
+            "http://www.mengyin.gov.cn/info/1461/67173.htm"
+          ]
+        }
+      ],
+      "intro_sources": [
+        "S8",
+        "S2"
+      ],
+      "cautions": [
+        "碑高、建设年份来源冲突，不入题、不配确定数字。"
+      ],
+      "coordinate": {
+        "crs": "WGS84",
+        "lat": 35.5796962,
+        "lng": 118.1886275,
+        "source_url": "https://www.openstreetmap.org/node/11279612625",
+        "confidence": "中高（OSM点位+独立实地照片说明确认存在；未经现场GPS复测）",
+        "method": "OSM命名节点原始lat/lon；不是从照片推算。",
+        "source_snapshot": "osm-source.xml",
+        "warning": "小数位来自数据库，不代表实测精度；实时可达性未核实。"
+      },
+      "introduction": "孟良崮战役纪念碑位于山上，是纪念地的重要精神地标。央视资料记载，纪念碑采用三把刺刀的造型，象征野战军、地方军和民兵的武装力量，表达军民团结、人民战争必胜的主题；碑名由胡耀邦题写。由山下纪念馆走向山上纪念碑，可以把史料学习与现场瞻仰联系起来，理解战役胜利背后的组织力量与人民支持。登临时不宜只把纪念碑当作登高终点，更应以肃穆之心缅怀牺牲者，思考如何传承革命精神。关于碑高、建成年份，不同公开资料存在差异，本导览暂不采用具体数字，避免以未经统一核实的信息误导参观者。",
+      "introduction_source_urls": [
+        "https://www.cctv.com/travel/special/2005sdy/20050415/102348.shtml",
+        "http://www.mengyin.gov.cn/info/1461/67173.htm"
+      ]
+    }
+  ],
+  "battle": {
+    "facts": [
+      {
+        "text": "日期：1947年5月13日至16日；地点：山东蒙阴孟良崮地区。",
+        "source_ids": [
+          "S6"
+        ],
+        "source_urls": [
+          "https://www.dswxyjy.org.cn/GB/434461/434466/434708/index.html"
+        ]
+      },
+      {
+        "text": "华东野战军司令员兼政治委员陈毅、副司令员粟裕、副政治委员谭震林参与确定战役部署；主要指挥者通常表述为陈毅、粟裕。",
+        "source_ids": [
+          "S5",
+          "S3"
+        ],
+        "source_urls": [
+          "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html",
+          "https://wgxj.linyi.gov.cn/info/1494/52944.htm"
+        ]
+      },
+      {
+        "text": "主攻：第1、第4、第8、第9、第6纵队；阻援：第10、第3、第2、第7纵队；另有特种兵纵队及地方武装等配合作战。",
+        "source_ids": [
+          "S5"
+        ],
+        "source_urls": [
+          "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+        ]
+      },
+      {
+        "text": "国民党军主要围歼对象为整编第74师及整编第83师一部；整编第74师师长张灵甫。",
+        "source_ids": [
+          "S5"
+        ],
+        "source_urls": [
+          "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+        ]
+      },
+      {
+        "text": "结果：全歼整编第74师等部，击毙张灵甫。党史研究院概述共3万余人；人民网文章统计共毙伤俘敌32000余人，含相关援敌，不等于全数击毙，也不能全部当作74师编制人数。",
+        "source_ids": [
+          "S6",
+          "S5"
+        ],
+        "source_urls": [
+          "https://www.dswxyjy.org.cn/GB/434461/434466/434708/index.html",
+          "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+        ]
+      },
+      {
+        "text": "意义：在国民党军重点进攻方向打击其精锐，给国民党军队以沉重打击，发生在解放区全面反攻前夕，影响重大。",
+        "source_ids": [
+          "S6"
+        ],
+        "source_urls": [
+          "https://www.dswxyjy.org.cn/GB/434461/434466/434708/index.html"
+        ]
+      }
+    ],
+    "numbers_policy": "不使用双方45万对27万作为本战役直接交战人数；那是战区背景量级，统计口径和时间需另核。此次采用纵队部署与结果数字；我军伤亡数未作权威交叉核对，暂不发布。"
+  },
+  "memorial_basics": {
+    "facts": [
+      {
+        "text": "位于山东省临沂市蒙阴县垛庄镇泉桥村；纪念馆在烈士陵园内。",
+        "source_ids": [
+          "S3",
+          "S4"
+        ],
+        "source_urls": [
+          "https://wgxj.linyi.gov.cn/info/1494/52944.htm",
+          "https://shandong-chorography.org/database/a/section/70/article/699/"
+        ]
+      },
+      {
+        "text": "1954年国家政务院拨专款修建孟良崮烈士陵园；不是把1954年直接写为现展馆开馆年。",
+        "source_ids": [
+          "S1"
+        ],
+        "source_urls": [
+          "https://www.linyi.gov.cn/info/4749/210999.htm"
+        ]
+      },
+      {
+        "text": "山东地情档案记载纪念馆1980年10月筹建、1983年建成开放；现有展馆2007年改造建设。",
+        "source_ids": [
+          "S4",
+          "S1"
+        ],
+        "source_urls": [
+          "https://shandong-chorography.org/database/a/section/70/article/699/",
+          "https://www.linyi.gov.cn/info/4749/210999.htm"
+        ]
+      },
+      {
+        "text": "孟良崮旅游区为国家AAAA级旅游区、全国爱国主义教育示范基地；表述对象为旅游区，不把景区等级当作博物馆等级。",
+        "source_ids": [
+          "S3"
+        ],
+        "source_urls": [
+          "https://wgxj.linyi.gov.cn/info/1494/52944.htm"
+        ]
+      },
+      {
+        "text": "烈士墓区位于纪念馆后，市政府2019年资料记载埋葬2865名烈士。人数为该文时点记录，不保证是今天完成身份核查后的最新数。",
+        "source_ids": [
+          "S1"
+        ],
+        "source_urls": [
+          "https://www.linyi.gov.cn/info/4749/210999.htm"
+        ]
+      },
+      {
+        "text": "纪念馆前有陈毅、粟裕侍马雕像；馆后墓地中部为粟裕部分骨灰撒放处，其后为烈士英名塔。",
+        "source_ids": [
+          "S7"
+        ],
+        "source_urls": [
+          "http://whhly.shandong.gov.cn/art/2008/9/9/art_68380_6748258.html"
+        ]
+      },
+      {
+        "text": "沂蒙情雕塑园有35组、240个人物雕塑，市政府2019年简介有记载。",
+        "source_ids": [
+          "S1"
+        ],
+        "source_urls": [
+          "https://www.linyi.gov.cn/info/4749/210999.htm"
+        ]
+      }
+    ],
+    "visitor_info": {
+      "status": "现行政策未取得官方公告，不可硬编码为今日开放承诺",
+      "historical_ticket": {
+        "text": "2011年齐鲁晚报报道纪念馆已免费开放；不能据此认定山上遗址区、观光车等全部免费。",
+        "source_ids": [
+          "S10"
+        ],
+        "source_urls": [
+          "https://sjb.qlwb.com.cn/html/2011-06/27/content_149259.htm?div=-1"
+        ]
+      },
+      "historical_hours": {
+        "text": "2021年第三方攻略记载8:30—17:00，16:30停止入馆，周一闭馆、节假日照常开放。属于过期参考，非现行官方确认。",
+        "source_ids": [
+          "S9"
+        ],
+        "source_urls": [
+          "http://linyi.bendibao.com/jieri/guoqing/2021928/9469.shtm"
+        ]
+      },
+      "contact": {
+        "text": "高德POI列电话0539-5970616，仅作出行前核验联系方式。",
+        "source_ids": [
+          "M1"
+        ],
+        "source_urls": [
+          "https://www.amap.com/place/B021B0ACI6"
+        ]
+      },
+      "ui_copy": "开放时间、预约、票价及山上通行情况以纪念馆当日公告为准。"
+    }
+  },
+  "location_context": {
+    "facts": [
+      {
+        "text": "纪念馆所在地为蒙阴县垛庄镇泉桥村；山上遗址与山下纪念园分区，不与沂南县同名森林公园入口混为一谈。",
+        "source_ids": [
+          "S3",
+          "S2"
+        ],
+        "source_urls": [
+          "https://wgxj.linyi.gov.cn/info/1494/52944.htm",
+          "http://www.mengyin.gov.cn/info/1461/67173.htm"
+        ]
+      },
+      {
+        "text": "2024年市文旅资料称距蒙阴县城28公里；2022年县政府资料称北距县城30公里。可写距蒙阴县城约28—30公里（县城在其北侧；未统一测距起终点与口径）。",
+        "source_ids": [
+          "S3",
+          "S2"
+        ],
+        "source_urls": [
+          "https://wgxj.linyi.gov.cn/info/1494/52944.htm",
+          "http://www.mengyin.gov.cn/info/1461/67173.htm"
+        ]
+      },
+      {
+        "text": "2022年县政府资料称南距临沂城区50公里，故纪念地在临沂城区北侧；仅作约50公里区位概数，非实时驾车里程。",
+        "source_ids": [
+          "S2"
+        ],
+        "source_urls": [
+          "http://www.mengyin.gov.cn/info/1461/67173.htm"
+        ]
+      },
+      {
+        "text": "京沪高速孟良崮出口距景区约2公里，205国道从旅游区前经过。县政府原文写西距出口2公里，故出口在景区西侧。",
+        "source_ids": [
+          "S2",
+          "S3"
+        ],
+        "source_urls": [
+          "http://www.mengyin.gov.cn/info/1461/67173.htm",
+          "https://wgxj.linyi.gov.cn/info/1494/52944.htm"
+        ]
+      }
+    ],
+    "transport_uncertain": "公交时刻、线路运营状态、临沂机场/高铁站接驳及实时路况未核实，不给固定班次与到达时间。"
+  },
+  "recommended_route": {
+    "name": "山上遗址研学步行线（单程上行，非全区连续导航）",
+    "order": [
+      "field-command",
+      "trench",
+      "bridge",
+      "shell-rock",
+      "bullet-rock",
+      "zhang-site",
+      "monument"
+    ],
+    "legs": [
+      {
+        "from": "field-command",
+        "to": "trench",
+        "straight_line_m": 55,
+        "estimated_walking_distance_m": 90,
+        "estimated_walking_minutes": [
+          4,
+          6
+        ],
+        "method": "WGS84端点Haversine球面直线距离×1.6作山路绕行估计；按25—35米/分钟，加1—2分钟台阶与短暂停顿；非步道路网测量。",
+        "verified_path": false
+      },
+      {
+        "from": "trench",
+        "to": "bridge",
+        "straight_line_m": 241,
+        "estimated_walking_distance_m": 390,
+        "estimated_walking_minutes": [
+          13,
+          18
+        ],
+        "method": "WGS84端点Haversine球面直线距离×1.6作山路绕行估计；按25—35米/分钟，加1—2分钟台阶与短暂停顿；非步道路网测量。",
+        "verified_path": false
+      },
+      {
+        "from": "bridge",
+        "to": "shell-rock",
+        "straight_line_m": 259,
+        "estimated_walking_distance_m": 420,
+        "estimated_walking_minutes": [
+          13,
+          19
+        ],
+        "method": "WGS84端点Haversine球面直线距离×1.6作山路绕行估计；按25—35米/分钟，加1—2分钟台阶与短暂停顿；非步道路网测量。",
+        "verified_path": false
+      },
+      {
+        "from": "shell-rock",
+        "to": "bullet-rock",
+        "straight_line_m": 110,
+        "estimated_walking_distance_m": 180,
+        "estimated_walking_minutes": [
+          7,
+          10
+        ],
+        "method": "WGS84端点Haversine球面直线距离×1.6作山路绕行估计；按25—35米/分钟，加1—2分钟台阶与短暂停顿；非步道路网测量。",
+        "verified_path": false
+      },
+      {
+        "from": "bullet-rock",
+        "to": "zhang-site",
+        "straight_line_m": 443,
+        "estimated_walking_distance_m": 710,
+        "estimated_walking_minutes": [
+          22,
+          31
+        ],
+        "method": "WGS84端点Haversine球面直线距离×1.6作山路绕行估计；按25—35米/分钟，加1—2分钟台阶与短暂停顿；非步道路网测量。",
+        "verified_path": false
+      },
+      {
+        "from": "zhang-site",
+        "to": "monument",
+        "straight_line_m": 61,
+        "estimated_walking_distance_m": 100,
+        "estimated_walking_minutes": [
+          4,
+          6
+        ],
+        "method": "WGS84端点Haversine球面直线距离×1.6作山路绕行估计；按25—35米/分钟，加1—2分钟台阶与短暂停顿；非步道路网测量。",
+        "verified_path": false
+      }
+    ],
+    "total_estimated_walking_distance_m": 1890,
+    "total_estimated_walking_minutes": [
+      63,
+      90
+    ],
+    "method": "先按南向北的OSM点位分布拟定顺序，再按各腿直线距离×1.6估计山路距离；未宣称沿真实步道量取。仅适合路线卡及概览示意，不能作为可执行逐向导航。",
+    "path_status": "OSM快照存在footway/steps，但本稿未对每段连通、坡度、方向限制、封闭情况作现场验证。实际绕行可能显著超出估值。",
+    "visits": "建议另留各点5—10分钟学习时间；下山返程另计，体力、天气、台阶会增加耗时。",
+    "approach": {
+      "from": "hall",
+      "to": "field-command",
+      "mode": "山下参观后转山上步行线起点；接驳方式与上下客点待景区确认",
+      "straight_line_m": 4172,
+      "walking_distance_m": null,
+      "walking_minutes": null,
+      "reason": "馆区与山上是不同片区，不能把约4公里直线直接当步行导航。县政府所载3.5公里登山步道未提供与本组端点一一对应的线路；11公里柏油旅游线路也不能当成本腿步行距离。",
+      "source_urls": [
+        "http://www.mengyin.gov.cn/info/1461/67173.htm"
+      ]
+    }
+  },
+  "quiz": [
+    {
+      "id": "q1",
+      "type": "single-choice",
+      "question": "孟良崮战役发生于何时？",
+      "options": [
+        "1947年5月13日至16日",
+        "1945年8月13日至16日",
+        "1948年9月16日至24日",
+        "1949年4月20日至23日"
+      ],
+      "answer_index": 0,
+      "answer": "1947年5月13日至16日",
+      "explanation": "权威党史记载战役日期为1947年5月13日至16日。",
+      "source_ids": [
+        "S6"
+      ],
+      "source_urls": [
+        "https://www.dswxyjy.org.cn/GB/434461/434466/434708/index.html"
+      ]
+    },
+    {
+      "id": "q2",
+      "type": "single-choice",
+      "question": "孟良崮战役中人民军队的主力是？",
+      "options": [
+        "东北野战军",
+        "华东野战军",
+        "西北野战军",
+        "中原野战军"
+      ],
+      "answer_index": 1,
+      "answer": "华东野战军",
+      "explanation": "实施战役的是华东野战军。",
+      "source_ids": [
+        "S6"
+      ],
+      "source_urls": [
+        "https://www.dswxyjy.org.cn/GB/434461/434466/434708/index.html"
+      ]
+    },
+    {
+      "id": "q3",
+      "type": "single-choice",
+      "question": "哪一组是孟良崮战役的主要指挥者？",
+      "options": [
+        "刘伯承、邓小平",
+        "林彪、罗荣桓",
+        "陈毅、粟裕",
+        "彭德怀、贺龙"
+      ],
+      "answer_index": 2,
+      "answer": "陈毅、粟裕",
+      "explanation": "当地文旅部门记载陈毅、粟裕率华东野战军作战。",
+      "source_ids": [
+        "S3"
+      ],
+      "source_urls": [
+        "https://wgxj.linyi.gov.cn/info/1494/52944.htm"
+      ]
+    },
+    {
+      "id": "q4",
+      "type": "single-choice",
+      "question": "战役全歼了国民党军哪支主力？",
+      "options": [
+        "整编第74师",
+        "第38军",
+        "第29军",
+        "第115师"
+      ],
+      "answer_index": 0,
+      "answer": "整编第74师",
+      "explanation": "全歼对象是整编第74师等部。",
+      "source_ids": [
+        "S6"
+      ],
+      "source_urls": [
+        "https://www.dswxyjy.org.cn/GB/434461/434466/434708/index.html"
+      ]
+    },
+    {
+      "id": "q5",
+      "type": "single-choice",
+      "question": "整编第74师师长是谁？",
+      "options": [
+        "汤恩伯",
+        "顾祝同",
+        "黄百韬",
+        "张灵甫"
+      ],
+      "answer_index": 3,
+      "answer": "张灵甫",
+      "explanation": "张灵甫为整编第74师中将师长，在战役中被击毙。",
+      "source_ids": [
+        "S5"
+      ],
+      "source_urls": [
+        "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+      ]
+    },
+    {
+      "id": "q6",
+      "type": "single-choice",
+      "question": "按人民网所载战役统计，共毙伤俘敌多少？",
+      "options": [
+        "约320人",
+        "32000余人",
+        "约320万人",
+        "仅74人"
+      ],
+      "answer_index": 1,
+      "answer": "32000余人",
+      "explanation": "32000余人为战役统计，不能全部解释为击毙。",
+      "source_ids": [
+        "S5"
+      ],
+      "source_urls": [
+        "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+      ]
+    },
+    {
+      "id": "q7",
+      "type": "single-choice",
+      "question": "战役的作战类型是？",
+      "options": [
+        "大规模海战",
+        "跨海登陆战",
+        "山地运动歼灭战",
+        "空中战略轰炸"
+      ],
+      "answer_index": 2,
+      "answer": "山地运动歼灭战",
+      "explanation": "党史材料将其称为山地运动歼灭战。",
+      "source_ids": [
+        "S5"
+      ],
+      "source_urls": [
+        "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+      ]
+    },
+    {
+      "id": "q8",
+      "type": "single-choice",
+      "question": "按战役部署，主攻围歼任务由几个纵队担任？",
+      "options": [
+        "五个",
+        "两个",
+        "八个",
+        "一个"
+      ],
+      "answer_index": 0,
+      "answer": "五个",
+      "explanation": "第1、第4、第8、第9、第6共五个纵队主攻围歼。",
+      "source_ids": [
+        "S5"
+      ],
+      "source_urls": [
+        "http://dangshi.people.com.cn/n1/2018/0919/c85037-30301879.html"
+      ]
+    },
+    {
+      "id": "q9",
+      "type": "single-choice",
+      "question": "孟良崮战役纪念馆所在的县是？",
+      "options": [
+        "平邑县",
+        "沂水县",
+        "费县",
+        "蒙阴县"
+      ],
+      "answer_index": 3,
+      "answer": "蒙阴县",
+      "explanation": "文旅部门公布地址为蒙阴县垛庄镇泉桥村。",
+      "source_ids": [
+        "S3"
+      ],
+      "source_urls": [
+        "https://wgxj.linyi.gov.cn/info/1494/52944.htm"
+      ]
+    },
+    {
+      "id": "q10",
+      "type": "single-choice",
+      "question": "纪念馆后方的纪念空间是什么？",
+      "options": [
+        "古代书院",
+        "烈士墓区",
+        "港口码头",
+        "飞机跑道"
+      ],
+      "answer_index": 1,
+      "answer": "烈士墓区",
+      "explanation": "市政府简介记载烈士墓区位于纪念馆后方。",
+      "source_ids": [
+        "S1"
+      ],
+      "source_urls": [
+        "https://www.linyi.gov.cn/info/4749/210999.htm"
+      ]
+    },
+    {
+      "id": "q11",
+      "type": "single-choice",
+      "question": "景区总体由哪两部分组成？",
+      "options": [
+        "海岛区与港区",
+        "古城与王陵",
+        "山下纪念园区与山上战役遗址区",
+        "湿地与沙漠"
+      ],
+      "answer_index": 2,
+      "answer": "山下纪念园区与山上战役遗址区",
+      "explanation": "县、市文旅资料均记载山下纪念、山上遗址两部分。",
+      "source_ids": [
+        "S2"
+      ],
+      "source_urls": [
+        "http://www.mengyin.gov.cn/info/1461/67173.htm"
+      ]
+    },
+    {
+      "id": "q12",
+      "type": "single-choice",
+      "question": "纪念碑三把刺刀的造型象征什么？",
+      "options": [
+        "野战军、地方军和民兵",
+        "三种交通方式",
+        "三座城市",
+        "三个季节"
+      ],
+      "answer_index": 0,
+      "answer": "野战军、地方军和民兵",
+      "explanation": "央视资料解释为野战军、地方军和民兵的武装力量。",
+      "source_ids": [
+        "S8"
+      ],
+      "source_urls": [
+        "https://www.cctv.com/travel/special/2005sdy/20050415/102348.shtml"
+      ]
+    }
+  ],
+  "unresolved": [
+    "馆门、烈士墓区、粟裕骨灰撒放处、英烈塔、沂蒙情雕塑园的独立WGS84坐标未取得，未伪造并排点位；这些空间存在可由政府资料确认，待取得测绘/官方导览图后可替换普通场景点。",
+    "馆区点位使用OSM园区面中心，不是建筑入口；应在UI标注园区定位。",
+    "华野战地指挥所只能确认景区同名标识存在，未确认其就是战役总部旧址；不作陈毅粟裕驻此指挥的断言。",
+    "碑高与落成年份公开资料有20米/30米、1984/1985等差异，本稿不采用数字；需馆方文物档案定稿。",
+    "纪念馆早期建成开放采用地情档案1983年；网络另见1984年口径，未完成馆史原始档案复核，建议展示2007年现馆改造节点而不做首次开馆年份考题。",
+    "2019年简介四展厅与较早资料五展厅存在口径变化，须标出处时间，不保证现展陈仍一致。",
+    "现行预约、门票、闭馆日、开放时间、无障碍通道与山上接驳未获现行官方公告。",
+    "路线距离和时长为模型估计，不是现场实测；所有路线腿verified_path=false，发布为线下导航前须核验。"
+  ],
+  "handoff": "只完成研究资料，不含应用代码、音频、图片下载或UI。用户可据可信点位开展H5区位图；若需精确到馆门和线下逐向导航，尚须坐标与道路实测。"
+}
