@@ -112,6 +112,17 @@ async function main() {
       assert.ok(await page.locator('#avatar').evaluate(v => v.hidden));
       await page.locator('#gStop').click();
 
+      await page.evaluate(() => window.__guide.openPoint('hall'));
+      await page.locator('#btnListen').click();
+      await page.waitForFunction(() => window.testFallback.src.endsWith('/hall.mp3') && window.testFallback.readyState >= 2 && !window.testFallback.paused);
+      await page.evaluate(() => window.testFallback.currentTime = window.testFallback.duration - 0.1);
+      await page.waitForFunction(() => document.querySelector('#gPause').textContent === '重新讲解');
+      await page.locator('#gPause').click();
+      await page.waitForFunction(() => window.testFallback.src.endsWith('/hall.mp3') && !window.testFallback.paused);
+      assert.ok(videos[videos.length - 1].endsWith('/hall.mp4'), 'Replay after point completion must request the same point, not intro');
+      await page.locator('#gStop').click();
+      await page.locator('#sheetClose').click();
+
       await page.locator('[data-tab=route]').click();
       await page.locator('#btnTour').click();
       await page.waitForFunction(() => document.querySelector('#avatar').currentTime > 0.1);
@@ -138,7 +149,7 @@ async function main() {
       assert.equal(await page.evaluate(() => Object.keys(JSON.parse(localStorage.getItem('mlg_stamps_v1'))).filter(id => !id.startsWith('__')).length), order.length);
 
       await page.locator('#panelClose').click();
-      await page.locator('.module-launchers [data-module=narrator]').click();
+      await page.locator('[data-tab=route]').click();
       await page.evaluate(() => {
         const play = HTMLMediaElement.prototype.play;
         HTMLMediaElement.prototype.play = function () {
@@ -146,7 +157,7 @@ async function main() {
           return Promise.reject(new DOMException('User activation required', 'NotAllowedError'));
         };
       });
-      await page.locator('#gPause').click();
+      await page.locator('#btnTour').click();
       await page.waitForFunction(() => document.querySelector('#gPause').textContent === '重试');
       await page.locator('#gPause').click();
       await page.waitForFunction(() => !document.querySelector('#avatar').paused);
@@ -167,7 +178,7 @@ async function main() {
       await page.locator('#gStop').click();
 
       assert.deepEqual(errors, []);
-      console.log(`PASS ${viewport.width}x${viewport.height}: idle, audible video, pause/resume/stop, MP3 fallback, complete tour chaining/stamps, autoplay retry, empty media/SRT, audio error`);
+      console.log(`PASS ${viewport.width}x${viewport.height}: idle, audible video, pause/resume/stop, point replay after end, MP3 fallback, complete tour chaining/stamps, autoplay retry, empty media/SRT, audio error`);
       console.log(`Console ${viewport.width}: application errors=0; expected missing-video HTTP 404 diagnostics=${missing.length}`);
       console.log(`Expected diagnostic: ${missing[0]}`);
       await context.close();

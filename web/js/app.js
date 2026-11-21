@@ -85,7 +85,7 @@ function showContext(){closeAll();ctxLayer.addTo(map);var b=L.latLngBounds([site
 function contextHtml(){var h='<p><b>'+esc(G.site.name)+'</b><br>'+esc(G.site.address)+'</p><p>'+esc(G.site.location)+'</p>';(G.context||[]).forEach(function(c){h+='<div class="leg"><div class="no">●</div><div><b>'+esc(c.name)+'</b><br><small>'+esc(c.desc)+'</small></div></div>'});h+=srcHtml(G.site.sources);h+='<p><button class="btn-ghost" id="ctxBack">返回景区导览</button></p>';return h}
 
 /* ---------- audio + digital human ---------- */
-var video=$('#avatar'),fallbackAudio=new Audio(),audio=video,cues=[],raf,onEnd=null,playingId=null,subtitleRequest=null,speechVersion=0,wantPlay=false;
+var video=$('#avatar'),fallbackAudio=new Audio(),audio=video,cues=[],raf,onEnd=null,playingId=null,lastSpeech=null,subtitleRequest=null,speechVersion=0,wantPlay=false;
 fallbackAudio.preload='none';
 var bubble=$('#bubble'),guide=$('#guide');
 function parseSrt(t){var out=[];t.replace(/\r/g,'').split(/\n\n+/).forEach(function(b){var m=b.match(/(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)\n([\s\S]*)/);if(m){var s=+m[1]*3600+ +m[2]*60+ +m[3]+ +m[4]/1000,e=+m[5]*3600+ +m[6]*60+ +m[7]+ +m[8]/1000;out.push({s:s,e:e,t:m[9].trim()})}});return out}
@@ -95,6 +95,7 @@ function loop(){
   if(!audio.paused&&!document.hidden)raf=requestAnimationFrame(loop);
 }
 function speak(id,fallbackText,cb){
+  lastSpeech={id:id,text:fallbackText};
   stopSpeak(true);playingId=id;onEnd=cb||null;guide.classList.remove('hidden');map.invalidateSize({pan:false});bubble.textContent=fallbackText?fallbackText.slice(0,40)+'…':'';$('#gPause').textContent='暂停';
   var version=speechVersion;subtitleRequest=window.AbortController?new AbortController():null;
   function missingCaptions(){if(playingId===id&&speechVersion===version)toast('字幕暂不可用，可阅读点位正文或关于页讲解全文')}
@@ -128,10 +129,10 @@ function playAudio(){
   media.addEventListener('ended',function(){if(media!==audio||!playingId||!media.ended)return;var f=onEnd,id=playingId;onEnd=null;playingId=null;wantPlay=false;cancelAnimationFrame(raf);showStill();$('#gPause').textContent='重新讲解';clearMedia(video);clearMedia(fallbackAudio);if(f)f(id);var status=$('#panelAudioStatus');if(status)status.textContent='讲解已完成，印章已保存'});
 });
 document.addEventListener('visibilitychange',function(){cancelAnimationFrame(raf);if(!document.hidden&&!audio.paused)loop()});
-$('#gPause').onclick=function(){if(!playingId){speak('intro',G.narration.intro);return}if(!wantPlay){if(audio.error)audio.load();playAudio();this.textContent='暂停'}else{wantPlay=false;audio.pause();this.textContent='继续'}};
+$('#gPause').onclick=function(){if(!playingId){speak(lastSpeech?lastSpeech.id:'intro',lastSpeech?lastSpeech.text:G.narration.intro);return}if(!wantPlay){if(audio.error)audio.load();playAudio();this.textContent='暂停'}else{wantPlay=false;audio.pause();this.textContent='继续'}};
 $('#gStop').onclick=function(){stopTour();stopSpeak(false)};
 var minimise=document.createElement('button');minimise.id='gMin';minimise.type='button';minimise.textContent='收起';minimise.onclick=function(){var small=guide.classList.toggle('minimized');map.invalidateSize({pan:false});minimise.textContent=small?'展开':'收起';minimise.setAttribute('aria-expanded',String(!small))};$('.guide-ctrl').appendChild(minimise);
-window.addEventListener('guide:shell-ready',function(){window.GuideShell.registerModule('narrator',function(){closeAll();setTab('map');guide.classList.remove('hidden','minimized');minimise.textContent='收起';minimise.setAttribute('aria-expanded','true');if(!playingId){bubble.textContent='我是AI数字人讲解员小崮。点击“开始讲解”，聆听孟良崮的红色记忆。';$('#gPause').textContent='开始讲解'}map.invalidateSize({pan:false});requestAnimationFrame(function(){$('#gPause').focus()})})});
+window.addEventListener('guide:shell-ready',function(){window.GuideShell.registerModule('narrator',function(){closeAll();setTab('map');guide.classList.remove('hidden','minimized');minimise.textContent='收起';minimise.setAttribute('aria-expanded','true');if(!playingId){bubble.textContent=lastSpeech?lastSpeech.text:'我是AI数字人讲解员小崮。点击“开始讲解”，聆听孟良崮的红色记忆。';$('#gPause').textContent=lastSpeech?'重新讲解':'开始讲解'}map.invalidateSize({pan:false});requestAnimationFrame(function(){$('#gPause').focus()})})});
 
 /* ---------- point sheet ---------- */
 function srcHtml(s){if(!s||!s.length)return'';return'<div class="src">资料来源：'+s.map(function(x,i){return'['+(i+1)+'] <a href="'+esc(x.u)+'" target="_blank" rel="noopener">'+esc(x.t)+'</a>'}).join('；')+'</div>'}
