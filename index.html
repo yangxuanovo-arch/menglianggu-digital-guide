@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>崮上丰碑 · 孟良崮战役纪念地数字导览</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand"><span class="star">★</span><div><h1>崮上丰碑</h1><p>孟良崮战役纪念地 · 数字导览</p></div></div>
+  <div class="top-actions">
+    <button id="btnLocate" title="区位">区位</button>
+    <button id="btnHelp" title="使用说明">?</button>
+  </div>
+</header>
+
+<div id="map"></div>
+
+<!-- point detail sheet -->
+<section id="sheet" class="sheet hidden" aria-live="polite">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" id="sheetClose">×</button>
+  <div id="sheetBody"></div>
+</section>
+
+<!-- panels -->
+<section id="panel" class="panel hidden">
+  <div class="panel-head"><h2 id="panelTitle"></h2><button class="panel-close" id="panelClose">×</button></div>
+  <div id="panelBody" class="panel-body"></div>
+</section>
+
+<!-- digital human -->
+<div id="guide" class="guide hidden">
+  <div id="bubble" class="bubble"></div>
+  <div class="avatar-wrap">
+    <svg id="avatar" viewBox="0 0 200 240" aria-label="数字人讲解员 小崮">
+      <defs>
+        <linearGradient id="uniform" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b6b3a"/><stop offset="1" stop-color="#3f4d26"/></linearGradient>
+      </defs>
+      <!-- body -->
+      <path d="M30 240 Q34 172 100 164 Q166 172 170 240 Z" fill="url(#uniform)"/>
+      <path d="M86 166 L100 196 L114 166 Z" fill="#f4f1ea"/>
+      <path d="M94 178 L100 200 L106 178 Z" fill="#b71c1c"/>
+      <rect x="56" y="196" width="22" height="14" rx="2" fill="#4a5a2c" stroke="#2f3a1a"/>
+      <rect x="122" y="196" width="22" height="14" rx="2" fill="#4a5a2c" stroke="#2f3a1a"/>
+      <!-- neck -->
+      <rect x="88" y="138" width="24" height="30" rx="8" fill="#f1c9a5"/>
+      <!-- hair back -->
+      <path d="M48 92 Q46 34 100 30 Q154 34 152 92 L150 132 Q140 120 138 100 L62 100 Q60 120 50 132 Z" fill="#1f1a17"/>
+      <!-- face -->
+      <ellipse cx="100" cy="98" rx="44" ry="50" fill="#f6d3b3"/>
+      <!-- cap -->
+      <path d="M52 70 Q56 36 100 34 Q144 36 148 70 Q100 58 52 70 Z" fill="#56663a"/>
+      <path d="M48 72 Q100 60 152 72 L150 78 Q100 68 50 78 Z" fill="#3f4d26"/>
+      <polygon points="100,42 103.5,51 113,51 105.5,57 108.5,66 100,60.5 91.5,66 94.5,57 87,51 96.5,51" fill="#d32f2f"/>
+      <!-- bangs -->
+      <path d="M58 80 Q70 74 84 80 Q78 86 60 92 Z" fill="#1f1a17"/>
+      <path d="M142 80 Q130 74 116 80 Q122 86 140 92 Z" fill="#1f1a17"/>
+      <!-- brows -->
+      <path d="M70 90 Q80 85 90 89" stroke="#3a2a20" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M110 89 Q120 85 130 90" stroke="#3a2a20" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <!-- eyes -->
+      <g id="eyes">
+        <ellipse cx="80" cy="102" rx="6" ry="7" fill="#2b1d16"/>
+        <ellipse cx="120" cy="102" rx="6" ry="7" fill="#2b1d16"/>
+        <circle cx="82" cy="99" r="2" fill="#fff"/><circle cx="122" cy="99" r="2" fill="#fff"/>
+      </g>
+      <!-- cheeks -->
+      <ellipse cx="70" cy="118" rx="7" ry="4" fill="#f3a3a0" opacity=".5"/>
+      <ellipse cx="130" cy="118" rx="7" ry="4" fill="#f3a3a0" opacity=".5"/>
+      <!-- nose -->
+      <path d="M100 106 Q97 114 101 116" stroke="#d9a07c" stroke-width="2" fill="none"/>
+      <!-- mouth -->
+      <ellipse id="mouth" cx="100" cy="128" rx="9" ry="1.5" fill="#a8323a"/>
+      <path id="lip" d="M90 127 Q100 131 110 127" stroke="#8c2a30" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="guide-name">讲解员 小崮</div>
+  </div>
+  <div class="guide-ctrl">
+    <button id="gPause">暂停</button><button id="gStop">关闭</button>
+  </div>
+</div>
+
+<nav id="tabbar">
+  <button data-tab="map" class="active"><i>⌖</i>导览地图</button>
+  <button data-tab="route"><i>⇢</i>推荐路线</button>
+  <button data-tab="stamps"><i>✪</i>研学打卡</button>
+  <button data-tab="quiz"><i>？</i>知识问答</button>
+  <button data-tab="about"><i>ⓘ</i>关于</button>
+</nav>
+
+<!-- onboarding -->
+<div id="intro" class="intro">
+  <div class="intro-card">
+    <div class="intro-star">★</div>
+    <h2>崮上丰碑</h2>
+    <p class="intro-sub" id="introSub"></p>
+    <ol class="intro-steps">
+      <li><b>点地图上的红色点位</b>，查看图文介绍</li>
+      <li><b>点“听讲解”</b>，数字人小崮为你讲述</li>
+      <li><b>听完即可打卡集章</b>，再挑战知识问答</li>
+    </ol>
+    <button id="introStart" class="btn-primary">开始体验</button>
+    <button id="introTour" class="btn-ghost">跟随小崮全程导览</button>
+  </div>
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="content/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
