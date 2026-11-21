@@ -36,6 +36,10 @@ function initGL() {
     return false;
   }
   renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.5 : 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   $('#stage').appendChild(renderer.domElement);
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(mobile ? 62 : 55, 1, 0.5, 2600);
@@ -49,9 +53,8 @@ function initGL() {
   controls.maxPolarAngle = Math.PI * 0.62;
   controls.enablePan = !mobile;
   controls.addEventListener('start', () => { manual = true; tween.active = false; });
-  let loaded = 0;
-  buildWorld(scene, mobile, Object.values(VIEWS).map((v) => (v.drift === 'pan' ? { pos: v.pos, target: v.target, radius: 16, cone: 1.3 } : { pos: v.pos, target: v.target, radius: 10, cone: 0.35, range: v.pos.distanceTo(v.target) + 3 })), () => { if (++loaded === 2) $('#start').classList.add('ready'); });
-  setTimeout(() => $('#start').classList.add('ready'), 2500);
+  buildWorld(scene, mobile, Object.values(VIEWS).map((v) => (v.drift === 'pan' ? { pos: v.pos, target: v.target, radius: 16, cone: 1.3 } : { pos: v.pos, target: v.target, radius: 10, cone: 0.35, range: v.pos.distanceTo(v.target) + 3 })), () => $('#start').classList.add('ready'));
+  setTimeout(() => $('#start').classList.add('ready'), 6000);
   resize();
   addEventListener('resize', resize);
   renderer.setAnimationLoop(frame);
@@ -235,13 +238,15 @@ function buildCredits() {
     <ul>
       <li>解说词：由 AI（Devin）依据下列史料来源整理撰写，经逐条对照来源核实。</li>
       <li>语音：AI 语音合成（Microsoft Edge 神经网络语音 zh-CN-YunyangNeural）。字幕与语音同步生成。</li>
-      <li>三维场景：由 AI 辅助编写代码程序化生成的示意模型，依据下列实景照片概略复原，<b>不是测绘级模型</b>，尺寸、比例与方位均为示意。</li>
-      <li><b>本页没有使用 AI 生成的图片。</b>所有照片均为实拍，碑名与石刻贴图裁切自下列实拍照片。</li>
+      <li>三维场景：由 AI 辅助编写代码程序化生成的示意模型，依据下列实景照片概略复原，<b>不是测绘级模型</b>，尺寸、比例与方位均为示意。石材、地面、天空采用 Poly Haven 实拍扫描贴图与实拍全景天空（CC0），松树为 Poly Haven 三维松树模型（CC0）的离线渲染图。</li>
+      <li><b>本页没有使用 AI 生成的图片。</b>所有照片与贴图均为实拍或由公开三维模型渲染，碑名与石刻贴图裁切自下列实拍照片。</li>
     </ul>
     <h3>图片来源与许可</h3>
     <ul>${imgs}
       <li>碑名贴图裁切自 Sprt98 摄纪念碑照片；石刻贴图裁切自 Windmemories 摄“击毙张灵甫之地”照片；均按 CC BY-SA 4.0 共享。</li>
     </ul>
+    <h3>三维贴图与天空（Poly Haven，CC0 公有领域）</h3>
+    <ul><li>天空全景（HDRI，地平线以下改为雾色）：<a href="https://polyhaven.com/a/lenong_2" target="_blank" rel="noopener">Poly Haven lenong_2</a>，CC0。</li><li>碑体石材：<a href="https://polyhaven.com/a/concrete_wall_008" target="_blank" rel="noopener">Poly Haven concrete_wall_008</a>，CC0。</li><li>广场与台阶铺石：<a href="https://polyhaven.com/a/granite_tile" target="_blank" rel="noopener">Poly Haven granite_tile</a>，CC0。</li><li>山地地表：<a href="https://polyhaven.com/a/aerial_grass_rock" target="_blank" rel="noopener">Poly Haven aerial_grass_rock</a>，CC0。</li><li>岩石：<a href="https://polyhaven.com/a/rock_boulder_dry" target="_blank" rel="noopener">Poly Haven rock_boulder_dry</a>，CC0。</li><li>绿篱：<a href="https://polyhaven.com/a/leafy_grass" target="_blank" rel="noopener">Poly Haven leafy_grass</a>，CC0。</li><li>松树（三维模型渲染为贴图）：<a href="https://polyhaven.com/a/pine_tree_01" target="_blank" rel="noopener">Poly Haven pine_tree_01</a>，CC0。</li></ul>
     <h3>史料来源</h3>
     <div class="cite">${srcLinks(Object.keys(content.sources))}</div>
     <h3>审慎说明</h3>

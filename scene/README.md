@@ -3,7 +3,8 @@
 成品在 `web/scene/`（纯静态，可直接部署）；本目录是源码。
 
 - `src/content.json`：解说词、要点、史料来源、图片署名（唯一内容源）。
-- `src/world.js`：程序化三维场景（three.js，无外部模型）。
+- `src/world.js`：程序化三维场景（three.js）：PBR 石材/地面贴图、实拍全景天空、松树公告板、暖色低角度阳光与软阴影、雾。
+- `web/scene/img/tex-*.jpg`、`sky.jpg`、`pines.webp`：Poly Haven CC0 素材缩至 512px（天空 2048×1024，松树由 pine_tree_01 模型离线渲染为 4 张贴图）。
 - `src/main.js`：热点、语音导览、字幕、讲解卡片、来源与 AI 声明。
 - `tools/generate_audio.py`：用 edge-tts 生成 `web/scene/audio/*.mp3` 与字幕时间轴 `src/cues.json`。
 
