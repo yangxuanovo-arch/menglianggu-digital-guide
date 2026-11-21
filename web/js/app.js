@@ -2,8 +2,9 @@
 'use strict';
 var G=window.GUIDE, $=function(s){return document.querySelector(s)};
 var LS_KEY='mlg_stamps_v1';
-var stamps=JSON.parse(localStorage.getItem(LS_KEY)||'{}');
-function save(){localStorage.setItem(LS_KEY,JSON.stringify(stamps))}
+var stamps=loadStamps();
+function loadStamps(){try{var value=JSON.parse(localStorage.getItem(LS_KEY)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch(e){return {}}}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(stamps))}catch(e){}}
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.style.opacity=0},1800);setTimeout(function(){d.remove()},2300)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
