@@ -18,6 +18,8 @@ with sync_playwright() as p:
         page.screenshot(path=str(SHOTS / (name+'-intro.png')))
         page.locator('#introStart').click()
         page.screenshot(path=str(SHOTS / (name+'-map.png')))
+        page.get_by_role('button',name='全区概览',exact=True).click()
+        page.wait_for_timeout(700)
         page.locator('.leaflet-marker-icon[title="孟良崮战役纪念馆"]').click()
         page.locator('#btnListen').click()
         page.wait_for_function("window.__audios[0].currentTime > 1 && !window.__audios[0].paused")
@@ -29,6 +31,7 @@ with sync_playwright() as p:
         page.locator('#gStop').click()
         for tab, filename in [('route','route'),('stamps','stamps'),('quiz','quiz'),('about','about')]:
             page.locator('[data-tab="'+tab+'"]').click()
+            page.wait_for_timeout(900)
             page.screenshot(path=str(SHOTS / (name+'-'+filename+'.png')))
             assert page.locator('#panel').is_visible()
             print(name, tab, page.locator('#panelTitle').inner_text(), flush=True)
