@@ -155,14 +155,14 @@ function stampPanel(){
   var bc=$('#btnCert');if(bc)bc.onclick=function(){drawCert(($('#certName').value||'红色研学者').trim())};
 }
 async function drawCert(name){
-  await document.fonts.load('30px GuideCJK');
+  try{await document.fonts.load('30px GuideCJK')}catch(e){}
   var c=document.createElement('canvas');c.width=1000;c.height=700;c.className='cert';var x=c.getContext('2d');
   x.fillStyle='#fbf7ef';x.fillRect(0,0,1000,700);x.strokeStyle='#b71c1c';x.lineWidth=14;x.strokeRect(24,24,952,652);x.lineWidth=2;x.strokeStyle='#e6b450';x.strokeRect(44,44,912,612);
-  x.fillStyle='#b71c1c';x.textAlign='center';x.font='bold 56px GuideCJK';x.fillText('红色研学证书',500,150);
-  x.fillStyle='#2a1f1a';x.font='30px GuideCJK';x.fillText(name+' 同学：',500,240);
-  x.font='26px GuideCJK';['你已通过“崮上丰碑”数字导览，','完成孟良崮战役纪念地全部 '+G.points.length+' 个点位的研学打卡','并通过红色知识问答。','传承红色基因，赓续沂蒙精神！'].forEach(function(t,i){x.fillText(t,500,310+i*48)});
-  x.font='22px GuideCJK';x.fillText(new Date().toLocaleDateString('zh-CN'),760,600);x.fillText('崮上丰碑 · 数字导览',760,565);
-  x.save();x.translate(250,560);x.rotate(-.15);x.strokeStyle='#d32f2f';x.lineWidth=5;x.beginPath();x.arc(0,0,70,0,2*PI);x.stroke();x.fillStyle='#d32f2f';x.font='bold 22px GuideCJK';x.fillText('孟良崮',0,-12);x.fillText('研学打卡',0,20);x.font='30px GuideCJK';x.fillText('★',0,52);x.restore();
+  x.fillStyle='#b71c1c';x.textAlign='center';x.font='bold 56px GuideCJK,sans-serif';x.fillText('红色研学证书',500,150);
+  x.fillStyle='#2a1f1a';x.font='30px GuideCJK,sans-serif';x.fillText(name+' 同学：',500,240);
+  x.font='26px GuideCJK,sans-serif';['你已通过“崮上丰碑”数字导览，','完成孟良崮战役纪念地全部 '+G.points.length+' 个点位的研学打卡','并通过红色知识问答。','传承红色基因，赓续沂蒙精神！'].forEach(function(t,i){x.fillText(t,500,310+i*48)});
+  x.font='22px GuideCJK,sans-serif';x.fillText(new Date().toLocaleDateString('zh-CN'),760,600);x.fillText('崮上丰碑 · 数字导览',760,565);
+  x.save();x.translate(250,560);x.rotate(-.15);x.strokeStyle='#d32f2f';x.lineWidth=5;x.beginPath();x.arc(0,0,70,0,2*PI);x.stroke();x.fillStyle='#d32f2f';x.font='bold 22px GuideCJK,sans-serif';x.fillText('孟良崮',0,-12);x.fillText('研学打卡',0,20);x.font='30px GuideCJK,sans-serif';x.fillText('★',0,52);x.restore();
   var box=$('#certBox');box.innerHTML='';box.appendChild(c);var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download='红色研学证书.png';a.textContent='保存证书图片';a.className='btn-ghost';a.style.display='inline-block';a.style.marginTop='8px';box.appendChild(a);
 }
 
