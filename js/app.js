@@ -126,7 +126,7 @@ function playAudio(){
   media.addEventListener('pause',function(){if(media===audio)cancelAnimationFrame(raf)});
   media.addEventListener('waiting',function(){if(media!==audio||!playingId)return;cancelAnimationFrame(raf);$('#announcer').textContent='讲解正在缓冲，请稍候'});
   media.addEventListener('error',function(){if(media!==audio||!playingId||!media.error)return;if(media===video){useAudioFallback();return}cancelAnimationFrame(raf);wantPlay=false;$('#gPause').textContent='重试';toast('音频暂不可用，可点击重试或阅读点位全文')});
-  media.addEventListener('ended',function(){if(media!==audio||!playingId||!media.ended)return;var f=onEnd,id=playingId;onEnd=null;playingId=null;wantPlay=false;cancelAnimationFrame(raf);showStill();$('#gPause').textContent='重新讲解';clearMedia(video);clearMedia(fallbackAudio);if(f)f(id);var status=$('#panelAudioStatus');if(status)status.textContent='讲解已完成，印章已保存'});
+  media.addEventListener('ended',function(){if(media!==audio||!playingId||!media.ended)return;var f=onEnd,id=playingId;onEnd=null;playingId=null;wantPlay=false;cancelAnimationFrame(raf);showStill();$('#gPause').textContent='重新讲解';clearMedia(video);clearMedia(fallbackAudio);if(byId(id))stamp(id,true);if(f)f(id);var status=$('#panelAudioStatus');if(status)status.textContent='讲解已完成，印章已保存'});
 });
 document.addEventListener('visibilitychange',function(){cancelAnimationFrame(raf);if(!document.hidden&&!audio.paused)loop()});
 $('#gPause').onclick=function(){if(!playingId){speak(lastSpeech?lastSpeech.id:'intro',lastSpeech?lastSpeech.text:G.narration.intro);return}if(!wantPlay){if(audio.error)audio.load();playAudio();this.textContent='暂停'}else{wantPlay=false;audio.pause();this.textContent='继续'}};
@@ -151,7 +151,7 @@ function openPoint(id,opts){
   h+=srcHtml(p.sources);
   var nx=nextOf(id);if(nx)h+='<p><button class="btn-ghost" id="btnNext">下一站：'+esc(nx.name)+' →</button></p>';
   $('#sheetBody').innerHTML=h;$('#sheet').classList.remove('hidden');$('#sheet').scrollTop=0;guide.classList.add('with-sheet');
-  $('#btnListen').onclick=function(){speak(id,p.text,function(){stamp(id,true);if(touring)tourTimer=setTimeout(tourNext,1200)})};
+  $('#btnListen').onclick=function(){speak(id,p.text,function(){if(touring)tourTimer=setTimeout(tourNext,1200)})};
   $('#btnStamp').onclick=function(){if(stamps[id])return;tryGeo(id)};
   var remote=$('#btnRemote');if(remote)remote.onclick=function(){if(stamps[id]){toast('本点已完成打卡');return}if(playingId===id){toast('听完本点讲解将自动获得印章');return}$('#btnListen').click()};
   if(nx)$('#btnNext').onclick=function(){openPoint(nx.id)};
