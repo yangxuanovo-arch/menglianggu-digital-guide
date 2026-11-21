@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright
 
 SHOTS = Path('/home/ubuntu/contest/shots')
 with sync_playwright() as p:
-    browser = p.chromium.connect_over_cdp('http://localhost:29229')
+    browser = p.chromium.launch()
     context = browser.new_context(viewport={'width': 390, 'height': 844})
     context.add_init_script("window.__audios=[];const NativeAudio=window.Audio;window.Audio=function(...args){const a=new NativeAudio(...args);window.__audios.push(a);return a};window.Audio.prototype=NativeAudio.prototype;")
     page = context.new_page()

@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 TITLE = '崮上丰碑——孟良崮战役纪念地数字导览'
 URL = 'https://yangxuanovo-arch.github.io/menglianggu-digital-guide/'
 NAME = f'红色齐鲁-数字创意挑战赛-{TITLE}-【学校名称】'
-FONT = ROOT / 'web/vendor/fonts/NotoSansCJKsc-Regular.otf'
+FONT = Path.home() / '.local/share/fonts/NotoSansCJKsc-Regular.otf'
 LOG_AUDIO = """window.__events=[];const NativeAudio=window.Audio;
 window.Audio=function(...args){const a=new NativeAudio(...args);window.__audio=a;
 ['playing','pause','ended','seeking'].forEach(type=>a.addEventListener(type,()=>

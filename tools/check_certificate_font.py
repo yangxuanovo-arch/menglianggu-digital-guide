@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright
 
 SHOTS = Path('/home/ubuntu/contest/shots')
 with sync_playwright() as p:
-    browser = p.chromium.connect_over_cdp('http://localhost:29229')
+    browser = p.chromium.launch()
     for fail in [False, True]:
         context = browser.new_context(accept_downloads=True)
         page = context.new_page()
