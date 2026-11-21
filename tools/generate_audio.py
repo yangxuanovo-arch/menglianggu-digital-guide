@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import subprocess
 
-WEB = Path('/home/ubuntu/contest/app/web')
+WEB = Path(__file__).resolve().parent.parent / 'web'
 guide = json.loads((WEB / 'content/data.js').read_text().removeprefix('window.GUIDE = ').removesuffix(';\n'))
 
 async def main():
