@@ -293,4 +293,7 @@ function bindUI() {
 buildHotspots();
 buildCredits();
 bindUI();
-if (!initGL()) $('#start').classList.add('ready');
+if (!initGL()) {
+  $('#start').classList.add('ready');
+  setInterval(tick, 100);
+}
