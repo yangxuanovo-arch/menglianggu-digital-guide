@@ -1,3 +1,4 @@
 *.mp4
 *.webm
 __pycache__/
+!web/video/narrator/*.mp4
