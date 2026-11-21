@@ -69,6 +69,20 @@ async function main() {
         const v = document.querySelector('#avatar');
         return !v.paused && v.currentTime > 0.25 && v.videoWidth === 480 && v.webkitAudioDecodedByteCount > 0;
       });
+      const layout = await page.evaluate(() => {
+        function box(selector) {
+          const r = document.querySelector(selector).getBoundingClientRect();
+          return { x: r.x, y: r.y, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+        }
+        return { frame: box('.narrator-frame'), bubble: box('#bubble'), dock: box('#guide'), map: box('#map'), controls: box('.guide-ctrl') };
+      });
+      const requiredWidth = viewport.width > 600 ? 240 : 120;
+      assert.ok(layout.frame.width >= requiredWidth && layout.frame.height >= requiredWidth * 1.25, 'Narrator must be the requested portrait size');
+      assert.ok(layout.bubble.x >= layout.frame.right && layout.controls.x >= layout.bubble.right, 'Subtitles and controls must sit beside the portrait');
+      assert.ok(layout.frame.y >= layout.dock.y && layout.frame.bottom <= layout.dock.bottom, 'Portrait must fit inside the dock');
+      assert.ok(layout.controls.x >= 0 && layout.controls.right <= viewport.width && layout.controls.bottom <= layout.dock.bottom, 'Controls must remain inside the viewport and dock');
+      assert.ok(layout.map.bottom <= layout.dock.y && layout.map.height >= (viewport.width > 600 ? 180 : 350), 'Map must remain visible above the dock');
+      console.log(`Layout ${viewport.width}: portrait=${layout.frame.width}x${layout.frame.height}; visible map height=${layout.map.height}`);
       assert.ok(await page.locator('#avatar').evaluate(v => !v.muted && v.volume > 0 && !window.testFallback.src));
       assert.equal(sounds.length, 0, 'Video narration must not load duplicate MP3 audio');
       await page.screenshot({ path: path.join(shots, `${viewport.width}-video.png`) });
@@ -78,6 +92,15 @@ async function main() {
       assert.ok(await page.locator('#avatar').evaluate((v, t) => v.paused && Math.abs(v.currentTime - t) < 0.05, paused));
       await page.locator('#gPause').click();
       await page.waitForFunction(t => document.querySelector('#avatar').currentTime > t + 0.1, paused);
+      await page.locator('#gMin').click();
+      assert.ok(await page.locator('#guide').evaluate(dock => {
+        const r = dock.getBoundingClientRect();
+        return ['#gStop', '#gMin'].every(selector => {
+          const b = dock.querySelector(selector).getBoundingClientRect();
+          return b.y >= r.y && b.bottom <= r.bottom;
+        });
+      }), 'Minimized controls must fit inside the compact dock');
+      await page.locator('#gMin').click();
       await page.locator('#gStop').click();
       assert.ok(await page.locator('#avatar').evaluate(v => v.paused && !v.hasAttribute('src') && !window.testFallback.hasAttribute('src')));
 
