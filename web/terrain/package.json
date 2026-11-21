@@ -1,0 +1,12 @@
+{
+  "name": "menglianggu-terrain",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/main.js --bundle --minify --format=esm --outfile=terrain.js --legal-comments=linked",
+    "check": "node --check src/main.js && node --check src/battle.js && node --check adapter.js"
+  },
+  "dependencies": { "three": "0.170.0" },
+  "devDependencies": { "esbuild": "0.25.12" }
+}

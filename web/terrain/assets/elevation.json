@@ -1,0 +1,26 @@
+{
+  "size": 257,
+  "bounds": [
+    118.07,
+    35.49,
+    118.3,
+    35.72
+  ],
+  "encoding": "int16-little-endian",
+  "rowOrder": "north-to-south",
+  "heightUnit": "metres",
+  "horizontalCRS": "EPSG:4326",
+  "verticalDatum": "EGM96",
+  "min": 123,
+  "max": 556,
+  "source": "Mapzen / Tilezen Terrain Tiles, Skadi N35E118 (SRTM-derived in this region)",
+  "sourceUrl": "https://elevation-tiles-prod.s3.amazonaws.com/skadi/N35/N35E118.hgt.gz",
+  "sourceRawSha256": "699ffcdb788eae14b5c264e0753571b313cfc696624dd6cae1a6359021fc7402",
+  "assetSha256": "e005ad66c2b15aef10158edd8f9a3d5697bc898c17e59c162d95f80e5789c6d2",
+  "retrieved": "2026-11-21",
+  "sourceSpacingArcSeconds": 1,
+  "resampling": "bilinear, then rounded to nearest metre",
+  "credit": "SRTM data courtesy of the U.S. Geological Survey. Terrain Tiles by Mapzen / Tilezen.",
+  "attributionUrl": "https://github.com/tilezen/joerd/blob/master/docs/attribution.md",
+  "note": "Modern terrain, not a reconstruction of the ground surface in 1947. Display vertical exaggeration is separate from stored elevations."
+}
