@@ -221,7 +221,7 @@ window.__guide={openPoint:openPoint,startTour:startTour,showContext:showContext,
 var announcer=document.createElement('div');announcer.id='announcer';announcer.className='sr-only';announcer.setAttribute('role','status');announcer.setAttribute('aria-live','polite');document.body.appendChild(announcer);
 var dialogs=[$('#intro'),$('#sheet'),$('#panel')],activeDialog=null,returnFocus=null,disabledFocus=[];
 dialogs.forEach(function(d,i){d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');d.setAttribute('aria-labelledby',['introTitle','pointTitle','panelTitle'][i]);d.tabIndex=-1});
-function focusable(root){return Array.prototype.filter.call(root.querySelectorAll('button,a[href],input,[tabindex]'),function(e){return e.tabIndex>=0&&!e.disabled&&e.getClientRects().length})}
+function focusable(root){return Array.prototype.filter.call(root.querySelectorAll('button,a[href],area[href],input,select,textarea,summary,audio[controls],video[controls],iframe,object,embed,[contenteditable],[tabindex]'),function(e){return (e.tabIndex>=0||(e.isContentEditable&&!e.hasAttribute('tabindex')))&&!e.disabled&&!e.matches(':disabled')&&e.getClientRects().length})}
 function syncDialog(){
   var next=dialogs.filter(function(d){return !d.classList.contains('hidden')})[0]||null;
   if(next===activeDialog)return;
