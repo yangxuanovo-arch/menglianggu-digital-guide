@@ -1,7 +1,7 @@
 body:has(.guide:not(.hidden)){--dock:344px}
 .guide,.guide.with-sheet{height:344px;max-height:none;padding:10px max(18px,calc((100vw - 1040px)/2));gap:28px;align-items:center}
 .guide .avatar-wrap{width:240px;flex:0 0 240px;align-self:center}
-.narrator-frame{position:relative;aspect-ratio:4/5;overflow:hidden;border:1px solid #b7975e;background:#130e0d;box-shadow:0 4px 20px #24100f30}
+.narrator-frame{position:relative;height:300px;aspect-ratio:4/5;overflow:hidden;border:1px solid #b7975e;background:#130e0d;box-shadow:0 4px 20px #24100f30}
 .narrator-frame:after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 20px 3px #0d080980;pointer-events:none}
 .narrator-frame img,.narrator-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .narrator-frame video{opacity:0}
@@ -19,6 +19,7 @@ body:has(.guide.minimized:not(.hidden)){--dock:48px}
   body:has(.guide:not(.hidden)){--dock:192px}
   .guide,.guide.with-sheet{height:192px;padding:10px;gap:9px}
   .guide .avatar-wrap{width:120px;flex-basis:120px}
+  .narrator-frame{height:150px}
   .guide .guide-name{font-size:9px;letter-spacing:0}
   .guide .bubble{max-height:164px;padding:4px 7px;font-size:12px}
   .guide .guide-ctrl{flex-basis:76px;gap:5px}
@@ -29,9 +30,11 @@ body:has(.guide.minimized:not(.hidden)){--dock:48px}
   body:has(.guide:not(.hidden)){--dock:94px}
   .guide,.guide.with-sheet{height:94px;padding:5px 12px;gap:10px}
   .guide .avatar-wrap{width:56px;flex-basis:56px}
+  .narrator-frame{height:70px}
   .guide .guide-name{font-size:7px;letter-spacing:0}
   .guide .bubble{max-height:78px}
   .guide .guide-ctrl{gap:3px}
   .guide .guide-ctrl button{min-height:24px;padding:2px}
   body:has(.guide.minimized:not(.hidden)){--dock:48px}
 }
+@supports (aspect-ratio:1){.narrator-frame{height:auto}}

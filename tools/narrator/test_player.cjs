@@ -83,6 +83,23 @@ async function main() {
       assert.ok(layout.controls.x >= 0 && layout.controls.right <= viewport.width && layout.controls.bottom <= layout.dock.bottom, 'Controls must remain inside the viewport and dock');
       assert.ok(layout.map.bottom <= layout.dock.y && layout.map.height >= (viewport.width > 600 ? 180 : 350), 'Map must remain visible above the dock');
       console.log(`Layout ${viewport.width}: portrait=${layout.frame.width}x${layout.frame.height}; visible map height=${layout.map.height}`);
+      const legacyFrame = await page.evaluate(() => {
+        const sheet = Array.from(document.styleSheets).find(sheet => sheet.href && sheet.href.endsWith('/css/narrator.css'));
+        const index = Array.from(sheet.cssRules).findIndex(rule => rule.conditionText && rule.conditionText.includes('aspect-ratio'));
+        const modernRule = sheet.cssRules[index].cssText;
+        sheet.deleteRule(index);
+        const override = document.createElement('style');
+        override.textContent = '.narrator-frame{aspect-ratio:auto!important}';
+        document.head.appendChild(override);
+        const r = document.querySelector('.narrator-frame').getBoundingClientRect();
+        const result = { width: r.width, height: r.height };
+        override.remove();
+        sheet.insertRule(modernRule, index);
+        return result;
+      });
+      assert.equal(legacyFrame.width, requiredWidth);
+      assert.equal(legacyFrame.height, requiredWidth * 1.25, 'Portrait must retain its height without aspect-ratio support');
+      console.log(`Legacy ratio fallback ${viewport.width}: portrait=${legacyFrame.width}x${legacyFrame.height}`);
       assert.ok(await page.locator('#avatar').evaluate(v => !v.muted && v.volume > 0 && !window.testFallback.src));
       assert.equal(sounds.length, 0, 'Video narration must not load duplicate MP3 audio');
       await page.screenshot({ path: path.join(shots, `${viewport.width}-video.png`) });
