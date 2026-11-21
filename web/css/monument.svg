@@ -1,7 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 300" fill="none">
 <!-- Original, simplified three-bayonet monument silhouette; decorative, not a measured elevation. -->
-<path d="m49 272 4-235 24 18 1 217Zm30 0L80 8l26 29 1 235Zm30 0 2-219 22-26 3 245Z" fill="#30251f"/>
-<path d="m53 37 7 10-2 219h-9Zm27-29 8 16-1 242h-8Zm53 19 3 245h-8l-2-236Z" fill="#c7a16a" fill-opacity=".55"/>
+<defs><linearGradient id="stone"><stop stop-color="#9b8c72"/><stop offset=".5" stop-color="#d5c4a2"/><stop offset="1" stop-color="#87765d"/></linearGradient></defs>
+<path d="M31 272 39 18q35 18 36 89l3 165Zm50 0 3-189q6-10 12 0l4 189Zm21 0 3-165q1-71 36-89l8 254Z" fill="url(#stone)"/>
+<path d="M39 18q30 30 29 89l3 165M141 18q-30 30-29 89l-3 165M90 84v188" stroke="#e2cc9d" stroke-opacity=".48"/>
+<path d="M50 130h80v91H50Z" fill="#493028"/><path d="M90 143v59" stroke="#c2a46e" stroke-width="2" stroke-dasharray="4 5"/>
 <path d="m38 270 108-1 15 14H24Zm-19 14h147v7H19Zm-12 9h171v7H7Z" fill="#30251f"/>
 <path d="M39 270h106M24 283h137M19 291h147" stroke="#c7a16a" stroke-opacity=".45"/>
 <path d="M97 68v140" stroke="#ba9156" stroke-width="2" stroke-dasharray="4 8" opacity=".5"/>
