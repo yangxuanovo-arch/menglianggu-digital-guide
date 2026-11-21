@@ -73,13 +73,13 @@ function loop(){
 }
 function speak(id,fallbackText,cb){
   ensureCtx();if(actx&&actx.state==='suspended')actx.resume();
-  stopSpeak(true);playingId=id;onEnd=cb||null;guide.classList.remove('hidden');bubble.textContent=fallbackText?fallbackText.slice(0,40)+'…':'';$('#gPause').textContent='暂停';
+  stopSpeak(true);playingId=id;onEnd=cb||null;guide.classList.remove('hidden');map.invalidateSize({pan:false});bubble.textContent=fallbackText?fallbackText.slice(0,40)+'…':'';$('#gPause').textContent='暂停';
   cues=[];fetch('audio/'+id+'.srt').then(function(r){return r.ok?r.text():''}).then(function(t){if(playingId===id)cues=parseSrt(t)}).catch(function(){});
   audio.src='audio/'+id+'.mp3';audio.currentTime=0;
   var pr=audio.play();if(pr&&pr.catch)pr.catch(function(){toast('请点击页面后重试播放')});
   cancelAnimationFrame(raf);loop();
 }
-function stopSpeak(keep){audio.pause();onEnd=null;playingId=null;if(!keep){guide.classList.add('hidden');cancelAnimationFrame(raf)}}
+function stopSpeak(keep){audio.pause();onEnd=null;playingId=null;if(!keep){guide.classList.add('hidden');map.invalidateSize({pan:false});cancelAnimationFrame(raf)}}
 audio.addEventListener('ended',function(){var f=onEnd;onEnd=null;var id=playingId;playingId=null;mouth.setAttribute('ry',1.5);lip.style.opacity=1;if(f)f(id)});
 $('#gPause').onclick=function(){if(audio.paused){audio.play();this.textContent='暂停'}else{audio.pause();this.textContent='继续'}};
 $('#gStop').onclick=function(){touring=false;stopSpeak(false)};
