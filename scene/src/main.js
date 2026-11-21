@@ -283,7 +283,9 @@ function bindUI() {
   if (!mobile) $('#card').classList.add('open');
   if (new URLSearchParams(location.search).has('embed') && parent !== window) {
     $('#back').hidden = false;
-    $('#back').addEventListener('click', () => { audio.pause(); parent.postMessage({ type: 'guide:close-module', id: 'panorama' }, '*'); });
+    const closeEmbed = () => { audio.pause(); parent.postMessage({ type: 'guide:close-module', id: 'panorama' }, '*'); };
+    $('#back').addEventListener('click', closeEmbed);
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#credits').classList.contains('show')) closeEmbed(); });
   }
   updateButtons();
 }
