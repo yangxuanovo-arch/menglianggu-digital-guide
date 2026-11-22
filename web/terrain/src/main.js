@@ -307,8 +307,9 @@ function fail(reason){
   raf=requestAnimationFrame(render);
 }
 
-setTime(0);
-try{
+async function init(){
+ setTime(0);
+ try{
   const results=await Promise.all([fetch('assets/elevation.json'),fetch('assets/elevation.i16')]);
   if(results.some(r=>!r.ok))throw Error('高程文件未能完整读取，请检查网络后重试。');
   metadata=await results[0].json();const binary=await results[1].arrayBuffer();
@@ -316,4 +317,6 @@ try{
   const dv=new DataView(binary);heights=new Int16Array(metadata.size*metadata.size);
   for(let i=0;i<heights.length;i++)heights[i]=dv.getInt16(i*2,true);
   buildScene();
-}catch(error){console.error('Terrain unavailable:',error);fail(error.message||'当前浏览器不支持三维绘图。');}
+ }catch(error){console.error('Terrain unavailable:',error);fail(error.message||'当前浏览器不支持三维绘图。');}
+}
+init();
