@@ -134,5 +134,41 @@ with sync_playwright() as p:
     assert not errors, errors
     print(f'PASS narrator resilience: rejected play retries; missing captions retain transcript/playback; failed MP3 keeps retry/transcript; empty data fails safely; page/console errors: {errors}', flush=True)
     context.close()
+    for mode in ['normal', 'empty', 'malformed', 'null', 'array', 'blocked', 'write-blocked']:
+        context = browser.new_context(service_workers='block')
+        context.add_init_script('HTMLDialogElement.prototype.showModal=undefined;document.addEventListener("DOMContentLoaded",()=>{const v=document.querySelector("#video");if(v)v.addEventListener("loadedmetadata",()=>v.playbackRate=16)})')
+        if mode == 'blocked':
+            context.add_init_script('Object.defineProperty(window,"localStorage",{get(){throw new DOMException("Blocked","SecurityError")}})')
+        elif mode == 'write-blocked':
+            context.add_init_script('Storage.prototype.setItem=function(){throw new DOMException("Full","QuotaExceededError")}')
+        page = new_page()
+        page.goto(base)
+        if mode in ['normal', 'malformed', 'null', 'array']:
+            value = {'normal': '{"trench":1,"__quiz":1}', 'malformed': '{', 'null': 'null', 'array': '[]'}[mode]
+            page.evaluate('(value)=>localStorage.setItem("mlg_stamps_v1",value)', value)
+        page.locator('#introStart').click()
+        page.locator('#hallShortcut').click()
+        page.locator('#btnNarrator').click()
+        page.wait_for_url('**/narrator/index.html?**')
+        assert page.evaluate('parent===window')
+        assert page.locator('#clip').input_value() == 'hall'
+        page.locator('#play').click()
+        page.get_by_role('button', name='重新讲解', exact=True).wait_for(timeout=20000)
+        if mode in ['blocked', 'write-blocked']:
+            assert '无法保存进度' in page.locator('#status').inner_text()
+            assert page.locator('#next').is_enabled()
+        else:
+            stamps = page.evaluate('JSON.parse(localStorage.getItem("mlg_stamps_v1"))')
+            assert isinstance(stamps['hall'], int) and stamps['hall'] > 0, stamps
+            if mode == 'normal':
+                assert stamps['trench'] == 1 and stamps['__quiz'] == 1
+            page.locator('#back').click()
+            page.locator('#introStart').click()
+            page.locator('[data-tab=stamps]').click()
+            assert page.locator('.stamp.on[data-id=hall]').count() == 1
+        print(f'PASS standalone narrator storage {mode}: no-dialog navigation, actual clip completion; point stamp persists on return or safe save-failure notice', flush=True)
+        context.close()
+    assert not errors, errors
+    print(f'PASS standalone narrator: all seven storage modes; page/console errors: {errors}', flush=True)
     browser.close()
     server.shutdown()

@@ -45,12 +45,19 @@
   $('clip').onchange=function(){choose(this.value)};
   $('prev').onclick=function(){if(index>0){choose(clips[index-1].id);$('play').click()}};
   $('next').onclick=function(){if(index<clips.length-1){choose(clips[index+1].id);$('play').click()}};
+  function saveStandaloneStamp(id){
+    if(!G.points.some(function(p){return p.id===id}))return;
+    var stamps={};
+    try{var value=JSON.parse(localStorage.getItem('mlg_stamps_v1')||'{}');if(value&&typeof value==='object'&&!Array.isArray(value))stamps=value}catch(e){}
+    if(stamps[id])return;stamps[id]=Date.now();
+    try{localStorage.setItem('mlg_stamps_v1',JSON.stringify(stamps))}catch(e){$('status').textContent='本段讲解已完成；浏览器无法保存进度，当前页面仍可继续使用'}
+  }
   [video,sound].forEach(function(m){
     m.addEventListener('playing',function(){if(m!==media||!active)return;wantPlay=true;$('play').textContent='暂停';$('status').textContent=m===video?'AI合成语音 · 正在播放':'静态肖像 · AI语音正在播放';tick()});
     m.addEventListener('pause',function(){if(m!==media||!active)return;cancelAnimationFrame(raf);$('play').textContent='继续';$('status').textContent='讲解已暂停'});
     m.addEventListener('waiting',function(){if(m===media&&active)$('status').textContent='讲解正在缓冲，请稍候'});
     m.addEventListener('error',function(){if(m!==media||!active||!m.error)return;if(m===video){fallback();return}wantPlay=false;$('play').textContent='重试';$('status').textContent='语音暂不可用，可展开讲解全文'});
-    m.addEventListener('ended',function(){if(m!==media||!active||!m.ended)return;active=false;wantPlay=false;completed=true;cancelAnimationFrame(raf);$('play').textContent='重新讲解';$('status').textContent='本段讲解已完成';if(parent!==window)parent.postMessage({type:'guide:narrator-complete',id:clips[index].id},location.origin)});
+    m.addEventListener('ended',function(){if(m!==media||!active||!m.ended)return;active=false;wantPlay=false;completed=true;cancelAnimationFrame(raf);$('play').textContent='重新讲解';$('status').textContent='本段讲解已完成';if(parent!==window)parent.postMessage({type:'guide:narrator-complete',id:clips[index].id},location.origin);else saveStandaloneStamp(clips[index].id)});
   });
   document.addEventListener('visibilitychange',function(){cancelAnimationFrame(raf);if(!document.hidden)tick()});
   choose(new URLSearchParams(location.search).get('clip')||'intro');
