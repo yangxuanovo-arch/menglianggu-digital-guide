@@ -1,10 +1,11 @@
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from playwright.sync_api import Error, sync_playwright
 
-from build_video import SCENES, subtitles, validate_audio, wait_for_media
+from build_video import SCENES, finalize_video, subtitles, validate_audio, wait_for_media
 
 
 class VideoTest(unittest.TestCase):
@@ -29,6 +30,56 @@ class VideoTest(unittest.TestCase):
             self.assertIn('地图连接历史。', text)
             self.assertIn('配音为AI合成', text)
             self.assertIn('Noto Sans CJK SC', text)
+
+
+class FinalizeVideoTest(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        self.concat = self.root/'concat.txt'
+        self.concat.write_text('fixture')
+        self.output = self.root/'submission.mp4'
+        self.output.write_bytes(b'last good submission')
+        self.result = {'format': {'duration': '264'}, 'streams': [
+            {'codec_type': 'video', 'width': 1920, 'height': 1080, 'codec_name': 'h264'},
+            {'codec_type': 'audio', 'codec_name': 'aac'}]}
+
+    def render(self, args):
+        candidate = Path(args[-1])
+        self.assertEqual(candidate.parent, self.output.parent)
+        self.assertNotEqual(candidate, self.output)
+        candidate.write_bytes(b'new submission')
+
+    def test_success_replaces_only_validated_submission(self):
+        def checked_probe(candidate):
+            self.assertEqual(self.output.read_bytes(), b'last good submission')
+            self.assertEqual(candidate.read_bytes(), b'new submission')
+            return self.result
+        with patch('build_video.run', side_effect=self.render), patch('build_video.probe', side_effect=checked_probe):
+            self.assertEqual(finalize_video(self.concat, self.output), self.result)
+        self.assertEqual(self.output.read_bytes(), b'new submission')
+        self.assertEqual(list(self.root.glob('.submission.*.mp4')), [])
+
+    def test_failures_preserve_submission_and_clean_temporary_file(self):
+        for failure in ['ffmpeg', 'ffprobe', 'duration', 'missing_audio', 'replace']:
+            with self.subTest(failure=failure):
+                def render(args):
+                    self.render(args)
+                    if failure == 'ffmpeg':
+                        raise RuntimeError('ffmpeg failed')
+                result = self.result.copy()
+                if failure == 'duration':
+                    result['format'] = {'duration': '1'}
+                if failure == 'missing_audio':
+                    result['streams'] = result['streams'][:1]
+                with patch('build_video.run', side_effect=render), patch(
+                        'build_video.probe', side_effect=RuntimeError('ffprobe failed') if failure == 'ffprobe' else None, return_value=result), patch(
+                        'build_video.os.replace', side_effect=OSError('replace failed')):
+                    with self.assertRaises((RuntimeError, AssertionError, StopIteration, OSError)):
+                        finalize_video(self.concat, self.output)
+                self.assertEqual(self.output.read_bytes(), b'last good submission')
+                self.assertEqual(list(self.root.glob('.submission.*.mp4')), [])
 
 
 class MediaWaitTest(unittest.TestCase):

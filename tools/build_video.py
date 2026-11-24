@@ -8,9 +8,11 @@ import argparse
 import asyncio
 import base64
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
+import tempfile
 import time
 from urllib.parse import urljoin, urlparse
 
@@ -280,6 +282,23 @@ def encode(scene, work):
     scene['encoded'] = str(output)
 
 
+def finalize_video(concat, output):
+    with tempfile.NamedTemporaryFile(dir=output.parent, prefix=f'.{output.stem}.', suffix='.mp4', delete=False) as temporary:
+        pending = Path(temporary.name)
+    try:
+        run(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', concat, '-c', 'copy', '-movflags', '+faststart', pending])
+        result = probe(pending)
+        video = next(s for s in result['streams'] if s['codec_type']=='video')
+        audio = next(s for s in result['streams'] if s['codec_type']=='audio')
+        assert 210 <= float(result['format']['duration']) <= 270
+        assert (video['width'], video['height'], video['codec_name'], audio['codec_name']) == (1920, 1080, 'h264', 'aac')
+        assert pending.stat().st_size <= 1024*1024*1024
+        os.replace(pending, output)
+        return result
+    finally:
+        pending.unlink(missing_ok=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--base-url', default='https://menglianggu-guide.pages.dev/')
@@ -332,13 +351,9 @@ def main():
     concat = work/'concat.txt'
     concat.write_text(''.join(f"file '{s['encoded']}'\n" for s in data['scenes']))
     output = args.out_dir/(NAME+'.mp4')
-    run(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', concat, '-c', 'copy', '-movflags', '+faststart', output])
-    result = probe(output)
+    result = finalize_video(concat, output)
     video = next(s for s in result['streams'] if s['codec_type']=='video')
     audio = next(s for s in result['streams'] if s['codec_type']=='audio')
-    assert 210 <= float(result['format']['duration']) <= 270
-    assert (video['width'], video['height'], video['codec_name'], audio['codec_name']) == (1920, 1080, 'h264', 'aac')
-    assert output.stat().st_size <= 1024*1024*1024
     frames = args.out_dir/'video-frames'
     frames.mkdir(exist_ok=True)
     for i, at in enumerate([5, 22, 70, 139, 160, 185, 212, 256, 223, 246], 1):
