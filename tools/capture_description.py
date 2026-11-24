@@ -2,7 +2,7 @@
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-BASE = 'https://yangxuanovo-arch.github.io/menglianggu-digital-guide/'
+BASE = 'https://menglianggu-guide.pages.dev/'
 OUT = Path(__file__).resolve().parent.parent / 'docs/images'
 
 with sync_playwright() as p:

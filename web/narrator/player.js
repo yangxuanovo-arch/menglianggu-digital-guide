@@ -4,7 +4,7 @@
   function back(e){if(parent===window)return;if(e)e.preventDefault();active=false;clear(video);clear(sound);parent.postMessage({type:'guide:narrator-close'},location.origin)}
   $('back').addEventListener('click',back);
   addEventListener('keydown',function(e){
-    if(e.key==='Escape'){if(parent!==window)back(e);else location.assign('../index.html')}
+    if(e.key==='Escape'){if(parent!==window)back(e);else location.assign('../')}
     if(e.key==='Tab'&&parent!==window){var list=Array.prototype.filter.call(document.querySelectorAll('a[href],button,select,summary,[tabindex]'),function(el){return el.tabIndex>=0&&!el.disabled&&el.getClientRects().length}),i=list.indexOf(document.activeElement);if(e.shiftKey&&i<=0){e.preventDefault();list[list.length-1].focus()}else if(!e.shiftKey&&(i===list.length-1||i<0)){e.preventDefault();list[0].focus()}}
   });
   if(!G||!G.narration||!G.route||!Array.isArray(G.points)||!Array.isArray(G.route.order)){$('status').textContent='讲解资料暂不可用，请返回导览重试';['play','stop','prev','next','clip'].forEach(function(id){$(id).disabled=true});return}

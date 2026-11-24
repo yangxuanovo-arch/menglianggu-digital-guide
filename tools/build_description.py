@@ -16,7 +16,7 @@ OUT = Path.home() / 'contest' / 'deliverables'
 OUT.mkdir(parents=True, exist_ok=True)
 TITLE = '崮上丰碑——孟良崮战役纪念地数字导览'
 FILENAME = f'红色齐鲁-数字创意挑战赛-{TITLE}-山东大学.docx'
-URL = 'https://yangxuanovo-arch.github.io/menglianggu-digital-guide/'
+URL = 'https://menglianggu-guide.pages.dev/'
 RED, GOLD = '8B1A1A', 'B8860B'
 
 
@@ -208,11 +208,11 @@ figure_pair([('terrain.png', '图5　3D地形沙盘与阶段态势', None), ('pa
 doc.add_heading('从聆听到参与：数字讲述 × 学习反馈', 2)
 para('AI视频讲述以虚构成年讲解员提供10段视频，支持字幕、章节切换、暂停继续及音频回退；保留原创SVG小崮音频导览。点位讲述完成可集章，再以问答巩固理解、证书记录体验。空间观察与人物叙事互补，现场与远程学习并行；实景、现代数据和艺术示意边界清楚，关于页集中保留出处及AI说明。')
 figure_pair([('narrator.png', '图7　AI视频讲述与同步字幕', None), ('certificate.png', '图8　研学证书示例（非官方认证）', None)], 5)
-para('截图来自公开Pages作品；证书使用隔离浏览器中的演示进度生成，不代表实地到访。门户支持返回与Escape，退出后恢复原入口焦点。')
+para('截图来自公开在线作品；证书使用隔离浏览器中的演示进度生成，不代表实地到访。门户支持返回与Escape，退出后恢复原入口焦点。')
 
 doc.add_page_break()
 heading('五、技术实现与体验保障')
-para('作品为HTML/CSS/原生JavaScript静态H5，GitHub Pages托管。Leaflet负责地图，Three.js负责三维；OSM坐标以WGS84记录，显示高德瓦片前转为GCJ-02。Audio／Video与字幕时间轴同步，WebAudio音量驱动SVG口型，localStorage保存进度，Canvas导出证书。')
+para('作品为HTML/CSS/原生JavaScript静态H5，Cloudflare Pages托管。Leaflet负责地图，Three.js负责三维；OSM坐标以WGS84记录，显示高德瓦片前转为GCJ-02。Audio／Video与字幕时间轴同步，WebAudio音量驱动SVG口型，localStorage保存进度，Canvas导出证书。')
 para('Service Worker缓存图文、音频、字幕和约11.95MB视频，总预缓存约19.8MB；高德瓦片不缓存，外链仍需联网。界面使用系统字体，证书按需加载约19.6KB字体子集。保留缩放、语义按钮、对话框焦点循环、Escape、字幕提示及减少动画；播放失败可重试／回退。尚未验证所有真机与读屏组合。')
 heading('六、AI使用声明')
 box = table(None, [['本作品使用AI辅助资料整理、代码编写及功能调试。' + AI]], [16.6])

@@ -20,6 +20,7 @@ video_bytes = sum((WEB/p).stat().st_size for p in videos)
 precache_videos = sum((WEB/p).stat().st_size for p in assets) + video_bytes <= 30 * 1024 * 1024
 if precache_videos:
     assets = sorted(assets + videos)
+cache_assets = sorted({(path[:-10] or './') if path.endswith('index.html') else path for path in assets})
 version = hashlib.sha256(b''.join(p.encode() + (WEB/p).read_bytes() for p in sorted(set(assets + videos))) + (WEB/'vendor/fonts/certificate.woff2').read_bytes() + Path(__file__).read_bytes()).hexdigest()[:16]
 worker = '''const CACHE='menglianggu-guide-VERSION';
 const ASSETS=ASSET_LIST;
@@ -33,13 +34,14 @@ async function ranged(response,range){
  if(start>end||start>=size||(!m[1]&&Number(m[2])===0))return new Response(null,{status:416,headers:{'Content-Range':'bytes */'+size}});
  return new Response(data.slice(start,end+1),{status:206,headers:{'Content-Type':response.headers.get('Content-Type')||'application/octet-stream','Accept-Ranges':'bytes','Content-Length':String(end-start+1),'Content-Range':'bytes '+start+'-'+end+'/'+size}});
 }
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(['./',...ASSETS].map(path=>new Request(path,{cache:'reload'})))).then(()=>self.skipWaiting()))});
+self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS.map(path=>new Request(path,{cache:'reload'})))).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('menglianggu-guide-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{
  const url=new URL(event.request.url);
  if(event.request.method!=='GET'||url.origin!==self.location.origin)return;
  event.respondWith(caches.open(CACHE).then(async cache=>{
-  const cached=await cache.match(event.request,{ignoreSearch:true});
+  const key=new URL(url.href);key.pathname=key.pathname.replace(/\\/index\\.html$/,'/');
+  const cached=await cache.match(key.href,{ignoreSearch:true});
   const range=event.request.headers.get('range'),media=/\\.(mp3|mp4)$/.test(url.pathname);
   if(cached)return media?ranged(cached,range):cached;
   if(url.pathname.endsWith('.mp4')){
@@ -54,6 +56,6 @@ self.addEventListener('fetch',event=>{
  }));
 });
 '''
-(WEB/'sw.js').write_text(worker.replace('VERSION', version).replace('ASSET_LIST', json.dumps(assets, ensure_ascii=False)))
+(WEB/'sw.js').write_text(worker.replace('VERSION', version).replace('ASSET_LIST', json.dumps(cache_assets, ensure_ascii=False)))
 print(f'Offline cache {version}: {len(assets)} assets; certificate font {(WEB/"vendor/fonts/certificate.woff2").stat().st_size} bytes')
 print(f'Video policy: {"precache" if precache_videos else "runtime on first play"}; {len(videos)} clips; {video_bytes} video bytes; {sum((WEB/p).stat().st_size for p in assets)} precache bytes')

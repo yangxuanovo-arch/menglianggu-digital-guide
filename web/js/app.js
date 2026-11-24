@@ -20,7 +20,8 @@ function P(o){return gcj(o.lat,o.lng)}
 var map=L.map('map',{zoomControl:true,attributionControl:true});
 var vec=L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:'底图 © 高德地图'});
 var sat=L.layerGroup([L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18,attribution:'影像 © 高德地图'}),L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}',{subdomains:'1234',maxZoom:18})]);
-vec.addTo(map);
+var networkBase=vec;
+if(navigator.onLine)vec.addTo(map);
 var poiLayer=L.layerGroup().addTo(map),routeLayer=L.layerGroup(),ctxLayer=L.layerGroup();
 L.control.layers({'标准地图':vec,'卫星影像':sat},{'推荐路线':routeLayer,'区位与交通':ctxLayer},{position:'topright'}).addTo(map);
 L.control.scale({imperial:false}).addTo(map);
@@ -271,7 +272,7 @@ window.addEventListener('guide:narrator-return',function(e){if(e.detail&&byId(e.
 window.addEventListener('guide:narrator-stamp',function(e){if(e.detail&&byId(e.detail.id))stamp(e.detail.id,true)});
 new MutationObserver(function(){document.body.classList.toggle('guide-visible',!guide.classList.contains('hidden'));map.invalidateSize({pan:false})}).observe(guide,{attributes:true,attributeFilter:['class']});
 var network=document.createElement('button');network.id='networkStatus';network.className='network-status';network.onclick=routePanel;document.body.appendChild(network);
-function networkState(){network.hidden=navigator.onLine;network.textContent='离线：点此查看点位与文字导览（地图需联网）';announcer.textContent=navigator.onLine?'网络已连接':'当前离线，可使用已缓存图文和讲解'}
+function networkState(){if(!navigator.onLine){if(map.hasLayer(vec))networkBase=vec;else if(map.hasLayer(sat))networkBase=sat;map.removeLayer(vec);map.removeLayer(sat)}else if(!map.hasLayer(vec)&&!map.hasLayer(sat))networkBase.addTo(map);network.hidden=navigator.onLine;network.textContent='离线：点此查看点位与文字导览（地图需联网）';announcer.textContent=navigator.onLine?'网络已连接':'当前离线，可使用已缓存图文和讲解'}
 window.addEventListener('online',networkState);window.addEventListener('offline',networkState);networkState();
 if(storageUnavailable)toast('浏览器存储不可用或进度损坏，当前页面仍可继续使用');
 if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{scope:'./',updateViaCache:'none'}).then(function(reg){return navigator.serviceWorker.ready}).then(function(){announcer.textContent='离线导览已就绪，图文与讲解已缓存'}).catch(function(){announcer.textContent='离线缓存暂不可用，请保持联网使用'})});

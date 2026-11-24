@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  var url=new URL('index.html',document.currentScript.src),layer=null,frame=null,opener=null,point=null;
+  var url=new URL('./',document.currentScript.src),layer=null,frame=null,opener=null,point=null;
   function close(){
     if(!layer)return;layer.close();layer.remove();layer=frame=null;
     if(point){window.dispatchEvent(new CustomEvent('guide:narrator-return',{detail:{id:point}}));point=null}

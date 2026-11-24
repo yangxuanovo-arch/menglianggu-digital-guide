@@ -149,7 +149,7 @@ with sync_playwright() as p:
         page.locator('#introStart').click()
         page.locator('#hallShortcut').click()
         page.locator('#btnNarrator').click()
-        page.wait_for_url('**/narrator/index.html?**')
+        page.wait_for_url('**/narrator/?**')
         assert page.evaluate('parent===window')
         assert page.locator('#clip').input_value() == 'hall'
         page.locator('#play').click()

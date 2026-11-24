@@ -8,7 +8,7 @@
   var dialog,frame,opener;
   function close(){if(!dialog)return;frame.contentWindow.postMessage({type:'guide:terrain-pause'},location.origin);dialog.close();frame.src='about:blank';opener&&opener.focus();}
   function open(){
-    if(typeof HTMLDialogElement==='undefined'||typeof HTMLDialogElement.prototype.showModal!=='function'){location.assign(new URL('index.html',base));return;}
+    if(typeof HTMLDialogElement==='undefined'||typeof HTMLDialogElement.prototype.showModal!=='function'){location.assign(base);return;}
     opener=document.activeElement;
     if(!dialog){
       dialog=document.createElement('dialog');dialog.setAttribute('aria-label','孟良崮三维战场沙盘');
@@ -18,7 +18,7 @@
       dialog.addEventListener('cancel',function(e){e.preventDefault();close();});
       window.addEventListener('message',function(e){if(e.origin===location.origin&&e.source===frame.contentWindow&&e.data&&e.data.type==='guide:terrain-close')close();});
     }
-    frame.src=new URL('index.html?embedded=1',base).href;dialog.showModal();
+    frame.src=new URL('./?embedded=1',base).href;dialog.showModal();
   }
   function register(){if(window.GuideShell&&typeof window.GuideShell.registerModule==='function')window.GuideShell.registerModule('terrain',open);}
   window.addEventListener('guide:shell-ready',register);register();

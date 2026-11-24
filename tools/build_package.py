@@ -15,7 +15,7 @@ sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True)
 archive = subprocess.check_output(['git', 'archive', '--format=tar', 'HEAD'], cwd=ROOT)
 readme = f'''崮上丰碑——孟良崮战役纪念地数字导览（完整项目包）
 
-在线访问：https://yangxuanovo-arch.github.io/menglianggu-digital-guide/
+在线访问：https://menglianggu-guide.pages.dev/
 源码仓库：https://github.com/yangxuanovo-arch/menglianggu-digital-guide
 
 目录：

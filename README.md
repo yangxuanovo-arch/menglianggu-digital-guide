@@ -1,6 +1,10 @@
 # menglianggu-digital-guide
 “红色齐鲁”数字创意挑战赛参赛作品：孟良崮战役纪念地数字导览（H5 地图 + 数字人讲解 + 研学打卡）
 
+正式入口：https://menglianggu-guide.pages.dev/ （Cloudflare Pages，项目 `menglianggu-guide`）。
+发布前运行 `python3 tools/build_offline.py`，将 `web/` 目录部署到该项目。
+离线缓存使用目录入口，兼容托管平台对 `index.html` 的重定向；地图瓦片仍需联网。
+
 ## AI declaration / 人工智能使用声明
 
 “AI 数字讲述”门户采用虚构成年讲解员，非真实人物或历史人物肖像。画面与声音均为 AI 合成，不代表历史影像或真人讲述；史实与资料来源请见导览正文。地图页原有SVG小崮与音频导览保留，每个点位另有AI视频讲解入口。

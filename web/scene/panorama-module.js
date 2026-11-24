@@ -1,8 +1,8 @@
 /* 场景重现（任务二·路线甲）接入模块：<script src="scene/panorama-module.js" defer></script>
    在 guide:shell-ready 后通过 GuideShell.registerModule('panorama', open) 注册，
-   open() 以全屏 iframe 打开 scene/index.html。 */
+   open() 以全屏 iframe 打开 scene/。 */
 (function () {
-  var sceneUrl = new URL('index.html?embed=1', (document.currentScript && document.currentScript.src) || location.href).href;
+  var sceneUrl = new URL('./?embed=1', (document.currentScript && document.currentScript.src) || location.href).href;
   var layer = null, frame = null, opener = null;
 
   function close() {

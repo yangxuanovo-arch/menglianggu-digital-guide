@@ -2,6 +2,7 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
+from urllib.parse import urlsplit
 
 from playwright.sync_api import sync_playwright
 
@@ -10,6 +11,15 @@ SHOTS = Path.home() / 'contest/shots'
 
 
 class Handler(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        url = urlsplit(self.path)
+        if url.path.endswith('/index.html'):
+            self.send_response(308)
+            self.send_header('Location', url.path[:-10] + ('?' + url.query if url.query else ''))
+            self.end_headers()
+            return
+        super().do_GET()
+
     def translate_path(self, path):
         return super().translate_path(path.replace('/menglianggu-digital-guide/', '/', 1))
 
@@ -35,7 +45,7 @@ def panorama_ready(page, inspect=False):
     frame.locator('#start.hide').wait_for()
     if inspect:
         for _ in range(6):
-            frame.locator('#next').click()
+            frame.locator('#next').click(no_wait_after=True)
         page.wait_for_timeout(3900)
         assert frame.locator('#card-title').inner_text() == '胜利之本'
         assert frame.locator('#card-num').inner_text() == '6/7'
@@ -46,7 +56,7 @@ def narrator_ready(page, clip='intro'):
     frame = page.frame_locator('dialog[open] iframe')
     frame.locator('#clip').wait_for()
     assert frame.locator('#clip').input_value() == clip
-    assert '/menglianggu-digital-guide/narrator/index.html?' in page.locator('dialog[open] iframe').get_attribute('src')
+    assert '/menglianggu-digital-guide/narrator/?' in page.locator('dialog[open] iframe').get_attribute('src')
     assert frame.locator('#video').evaluate('v=>v.preload==="none" && v.playsInline && !v.hasAttribute("src")')
     return frame
 
@@ -169,10 +179,13 @@ with sync_playwright() as p:
     page.wait_for_function('navigator.serviceWorker.controller')
     context.set_offline(True)
     page.reload()
+    for path in ['index.html', 'terrain/index.html', 'narrator/index.html', 'scene/index.html']:
+        result = page.evaluate('''async path=>{const r=await fetch(path,{redirect:'manual'});return {status:r.status,redirected:r.redirected}}''', path)
+        assert result == {'status': 200, 'redirected': False}, (path, result)
     page.locator('#introStart').click()
     page.locator('.module-launchers [data-module=terrain]').click()
     frame = terrain_ready(page)
-    assert '/menglianggu-digital-guide/terrain/index.html?embedded=1' in page.locator('dialog[open] iframe').get_attribute('src')
+    assert '/menglianggu-digital-guide/terrain/?embedded=1' in page.locator('dialog[open] iframe').get_attribute('src')
     frame.locator('#back').click()
     page.locator('dialog[open]').wait_for(state='hidden')
     page.locator('.module-launchers [data-module=narrator]').click()
@@ -186,7 +199,7 @@ with sync_playwright() as p:
             assert result['status'] == status and result['length'] == length and result['range'], result
     page.locator('.module-launchers [data-module=panorama]').click()
     frame = panorama_ready(page)
-    assert '/menglianggu-digital-guide/scene/index.html?embed=1' in page.locator('dialog[open] iframe').get_attribute('src')
+    assert '/menglianggu-digital-guide/scene/?embed=1' in page.locator('dialog[open] iframe').get_attribute('src')
     frame.locator('#back').click()
     page.locator('dialog[open]').wait_for(state='hidden')
     assert not errors, errors
