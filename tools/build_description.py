@@ -176,7 +176,7 @@ table(None, [
     ['作品名称', TITLE],
     ['参赛单位', '山东大学 低空科学与工程学院'],
     ['队长', '魏冰洋｜2024级计算机科学与技术专业研究生' + ('\n' + contact if contact else '')],
-    ['团队成员', '隋源｜2025级电子科学与技术专业本科生\n迟庆宇｜2024级机器人工程专业（本科）'],
+    ['团队成员', '隋源｜2025级电子科学与技术专业本科生\n迟庆宇｜2024级机器人工程专业本科生'],
     ['指导教师', '于瑞璇｜助理研究员'],
     ['在线访问', URL],
 ], [2.4, 14.2], labels=True)
@@ -267,6 +267,5 @@ credit('地图与数据', 'SRTM data courtesy of USGS；Terrain Tiles by Mapzen/
 credit('地图与数据', 'OSM contributors（ODbL）', 'https://www.openstreetmap.org/copyright')
 credit('地图与数据', '高德地图：保留底图署名与使用条款；Leaflet BSD-2-Clause；Three.js MIT；Noto Sans CJK子集 SIL OFL。')
 para('讲解为原创表述，界面、SVG与代码含AI辅助；不主张第三方史料、地图、素材或模型著作权。团队应在提交展示前复核授权及服务条款。')
-para('团队负责人签名：____________　日期：____________')
 doc.save(OUT / FILENAME)
 print(OUT / FILENAME)

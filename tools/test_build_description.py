@@ -20,6 +20,9 @@ class PrivateContactsTest(unittest.TestCase):
 
         with patch.object(Path, 'read_text', read_text), patch('docx.document.Document.save'):
             result = runpy.run_path(str(SCRIPT))
+        self.assertIn('迟庆宇｜2024级机器人工程专业本科生', result['doc'].tables[0].cell(3, 1).text)
+        self.assertNotIn('负责人签名', '\n'.join(p.text for p in result['doc'].paragraphs))
+        self.assertNotIn('日期：', '\n'.join(p.text for p in result['doc'].paragraphs))
         return result['doc'].tables[0].cell(2, 1).text
 
     def test_private_contacts(self):
