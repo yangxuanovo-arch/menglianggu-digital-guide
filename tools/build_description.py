@@ -1,11 +1,11 @@
-"""Build a five-page description using live screenshots and shared credit data."""
+"""Build the submission DOCX; PDF conversion uses an external office renderer."""
 import json
 from io import BytesIO
 from pathlib import Path
 
 from PIL import Image
 from docx import Document
-from docx.enum.section import WD_SECTION
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
@@ -14,8 +14,9 @@ from update_visitor_copy import AI
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'docs'
 TITLE = '崮上丰碑——孟良崮战役纪念地数字导览'
-FILENAME = f'红色齐鲁-数字创意挑战赛-{TITLE}-【学校名称】.docx'
+FILENAME = f'红色齐鲁-数字创意挑战赛-{TITLE}-山东大学.docx'
 URL = 'https://yangxuanovo-arch.github.io/menglianggu-digital-guide/'
+RED, GOLD = '8B1A1A', 'B8860B'
 
 
 def data(path, prefix):
@@ -26,155 +27,239 @@ guide = data('web/content/data.js', 'window.GUIDE = ')
 modules = data('web/content/module-credits.js', 'window.GUIDE_MODULE_CREDITS = ')
 research = json.loads((ROOT / 'research/research.json').read_text())
 doc = Document()
-section = doc.sections[0]
-section.page_width, section.page_height = Cm(21), Cm(29.7)
-section.top_margin = section.bottom_margin = Cm(1.4)
-section.left_margin = section.right_margin = Cm(1.6)
-for name in ['Normal', 'Heading 1', 'Heading 2', 'Title', 'Caption']:
-    s = doc.styles[name]
-    font = '黑体' if name in ['Heading 1', 'Heading 2', 'Title'] else '宋体'
-    s.font.name = font
-    s.element.get_or_add_rPr().rFonts.set(qn('w:eastAsia'), font)
-    s.font.size = Pt({'Title': 18, 'Heading 1': 12, 'Heading 2': 10, 'Caption': 9}.get(name, 10))
-    s.font.color.rgb = RGBColor.from_string('962821' if name in ['Title', 'Heading 1'] else '2B211D')
-    s.paragraph_format.space_after = Pt(4)
-    s.paragraph_format.space_before = Pt(0)
-    s.paragraph_format.line_spacing = 1.05
-footer = section.footer.paragraphs[0]
-footer.alignment = 1
-footer.add_run('崮上丰碑 · 作品说明书  |  ')
-field = OxmlElement('w:fldSimple')
-field.set(qn('w:instr'), 'PAGE')
-footer._p.append(field)
+s = doc.sections[0]
+s.page_width, s.page_height = Cm(21), Cm(29.7)
+s.top_margin = s.bottom_margin = s.left_margin = s.right_margin = Cm(2.2)
+s.footer_distance = Cm(1.1)
+for name in ['Normal', 'Title', 'Subtitle', 'Heading 1', 'Heading 2', 'Caption']:
+    style = doc.styles[name]
+    font = '黑体' if name in ['Title', 'Heading 1', 'Heading 2'] else '宋体'
+    style.font.name = font
+    style.element.get_or_add_rPr().rFonts.set(qn('w:eastAsia'), font)
+    style.font.size = Pt({'Title': 22, 'Heading 1': 14, 'Heading 2': 11, 'Caption': 9}.get(name, 10.5))
+    style.font.color.rgb = RGBColor.from_string(RED if name in ['Title', 'Heading 1', 'Heading 2'] else '282522')
+    f = style.paragraph_format
+    f.line_spacing = 1.3
+    f.space_before, f.space_after = Pt(0), Pt(5)
+    f.first_line_indent = Pt(21 if name == 'Normal' else 0)
+    f.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY if name == 'Normal' else WD_ALIGN_PARAGRAPH.LEFT
+for name in ['Heading 1', 'Heading 2']:
+    doc.styles[name].paragraph_format.space_before = Pt(8)
+    doc.styles[name].paragraph_format.space_after = Pt(6)
+doc.styles['Subtitle'].font.color.rgb = RGBColor.from_string(GOLD)
+doc.styles['Subtitle'].font.size = Pt(9)
+doc.styles['Subtitle'].font.italic = False
+doc.styles['Caption'].paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
 
-def para(text, style=None):
+def element(parent, tag, **attrs):
+    node = OxmlElement('w:' + tag)
+    for key, value in attrs.items():
+        node.set(qn('w:' + key), str(value))
+    parent.append(node)
+    return node
+
+
+def rule(p, color, size=5):
+    borders = element(p._p.get_or_add_pPr(), 'pBdr')
+    element(borders, 'bottom', val='single', sz=size, space=5, color=color)
+
+
+def para(text='', style=None):
     return doc.add_paragraph(text, style)
 
 
 def heading(text):
-    doc.add_heading(text, 1)
+    p = doc.add_heading(text, 1)
+    rule(p, GOLD)
 
 
-def picture(name, caption, width=17):
-    p = para('')
-    p.alignment = 1
-    p.add_run().add_picture(str(OUT / 'images' / name), width=Cm(width))
-    p = para(caption, 'Caption')
-    p.alignment = 1
+def compact(p, size=10.5, space=3, lines=1.15):
+    p.paragraph_format.first_line_indent = Pt(0)
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(space)
+    p.paragraph_format.line_spacing = lines
+    for r in p.runs:
+        r.font.size = Pt(size)
 
 
-def pair(left, right, caption, width=8.4, details=False):
-    table = doc.add_table(rows=1, cols=2)
-    for cell, name in zip(table.rows[0].cells, [left, right]):
+def table(headers, rows, widths, size=10.5, labels=False):
+    t = doc.add_table(rows=0, cols=len(widths))
+    t.autofit = False
+    for c, width in zip(t.columns, widths):
+        c.width = Cm(width)
+    props = t._tbl.tblPr
+    borders = element(props, 'tblBorders')
+    for edge in ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']:
+        element(borders, edge, val='single', sz=4, color='D8CBB8')
+    for index, values in enumerate(([headers] if headers else []) + rows):
+        row = t.add_row()
+        element(row._tr.get_or_add_trPr(), 'cantSplit')
+        if headers and index == 0:
+            element(row._tr.get_or_add_trPr(), 'tblHeader')
+        for j, (cell, text, width) in enumerate(zip(row.cells, values, widths)):
+            cell.width = Cm(width)
+            p = cell.paragraphs[0]
+            p.add_run(text)
+            compact(p, size)
+            if (headers and index == 0) or (labels and j == 0):
+                element(cell._tc.get_or_add_tcPr(), 'shd', fill='F3EEE4')
+                for r in p.runs:
+                    r.bold = True
+    return t
+
+
+def figure_pair(items, height=4.5):
+    t = doc.add_table(rows=1, cols=2)
+    t.autofit = False
+    for c in t.columns:
+        c.width = Cm(8.3)
+    row = t.rows[0]
+    element(row._tr.get_or_add_trPr(), 'cantSplit')
+    for cell, (name, caption, crop) in zip(row.cells, items):
+        image = Image.open(OUT / 'images' / name)
+        if crop:
+            image = image.crop(crop)
+        canvas = Image.new('RGB', (1200, round(1200 * height / 7.8)), 'white')
+        scale = min(canvas.width / image.width, canvas.height / image.height)
+        image = image.resize((round(image.width * scale), round(image.height * scale)), Image.Resampling.LANCZOS)
+        canvas.paste(image, ((canvas.width-image.width)//2, (canvas.height-image.height)//2))
+        stream = BytesIO()
+        canvas.save(stream, format='PNG')
+        stream.seek(0)
         p = cell.paragraphs[0]
-        p.alignment = 1
-        source = str(OUT / 'images' / name)
-        if details:
-            bounds = {'point.png': (840, 92, 1240, 552),
-                      'route.png': (40, 92, 480, 650),
-                      'stamps.png': (40, 92, 480, 570),
-                      'quiz.png': (40, 92, 480, 570)}
-            source = BytesIO()
-            with Image.open(OUT / 'images' / name) as image:
-                image.crop(bounds[name]).save(source, format='PNG')
-            source.seek(0)
-        p.add_run().add_picture(source, width=Cm(width))
-    para(caption, 'Caption')
+        compact(p, space=0, lines=1)
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.add_run().add_picture(stream, width=Cm(7.8), height=Cm(height))
+        p = cell.add_paragraph(caption, 'Caption')
+        p.paragraph_format.keep_with_next = False
+        p.paragraph_format.space_after = Pt(4)
+    para('').paragraph_format.space_after = Pt(0)
 
 
-def link(p, label, url):
+def hyperlink(p, label, url):
     rel = p.part.relate_to(url, 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink', is_external=True)
     h = OxmlElement('w:hyperlink')
     h.set(qn('r:id'), rel)
-    r = OxmlElement('w:r')
-    props = OxmlElement('w:rPr')
-    size = OxmlElement('w:sz')
-    size.set(qn('w:val'), '15')
-    props.append(size)
-    r.append(props)
-    t = OxmlElement('w:t')
-    t.text = label
-    r.append(t)
-    h.append(r)
+    r = element(h, 'r')
+    props = element(r, 'rPr')
+    element(props, 'rFonts', ascii='宋体', eastAsia='宋体', hAnsi='宋体')
+    element(props, 'sz', val=16)
+    element(props, 'color', val='684D21')
+    element(r, 't').text = label
     p._p.append(h)
 
 
-doc.add_heading(TITLE, 0)
-para('红色齐鲁·数字创意挑战赛｜任务一·红色数字地图导览｜学生组')
-para('参赛单位：【学校名称】　团队：【团队名称】\n团队成员：【成员】　指导教师：【指导教师】\n联系人：【姓名】　联系方式：【电话／邮箱】')
-para('在线作品：' + URL)
-heading('一、作品概述与选题依据')
-para('作品面向青少年研学，以山东临沂蒙阴县孟良崮战役纪念馆及山上纪念地为载体，串联“看地图—听讲解—游场景—走路线—集印章—答问题”。红金界面庄重克制，将真实地理、史料叙事与交互学习结合，服务课前预习、现场参观与课后复习，实现线上可游、线下可感、虚实结合。')
-para('孟良崮战役发生于1947年5月13日至16日，华东野战军在陈毅、粟裕指挥下歼灭国民党军整编第74师等部，是粉碎敌军重点进攻山东的重要战役。内容优先采用政府、党史与档案资料，来源见附录。景区“华野战地指挥所”为标识点，不认定为战役总部；开放、票务与山路情况以现场公告为准。')
-picture('map.png', '图1　公网地图：山上编号点群、山下纪念馆入口及三大模块门户。', 16.8)
-heading('二、使用入口')
-para('浏览器访问上述Pages链接即可使用，无需登录。点击编号或纪念馆入口查看照片与讲解；底栏进入路线、集章、问答和关于；三个门户进入地形沙盘、AI数字讲述与全景场景，使用“返回”或Escape回到导览。建议首次联网完整载入后再离线体验。')
+footer = s.footer.paragraphs[0]
+compact(footer, 9)
+footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
+footer.add_run('崮上丰碑·作品说明书　第 ')
+element(footer._p, 'fldSimple', instr='PAGE')
+footer.add_run(' 页 共 ')
+element(footer._p, 'fldSimple', instr='NUMPAGES')
+footer.add_run(' 页')
+
+p = para('崮上丰碑', 'Title')
+rule(p, RED, 18)
+p = para('孟良崮战役纪念地数字导览', 'Heading 2')
+p.paragraph_format.space_before = Pt(4)
+para('红色齐鲁·数字创意挑战赛｜学生组｜任务一 红色数字地图导览', 'Subtitle')
+table(None, [
+    ['作品名称', TITLE],
+    ['参赛单位', '山东大学 低空科学与工程学院'],
+    ['队长', '魏冰洋｜2024级计算机科学与技术专业研究生\n15026730009｜2279754571@qq.com'],
+    ['团队成员', '隋源｜2025级电子科学与技术专业本科生\n迟庆宇｜2024级机器人工程专业（本科）'],
+    ['指导教师', '于瑞璇｜助理研究员'],
+    ['在线访问', URL],
+], [2.4, 14.2], labels=True)
+heading('一、选题价值与作品概述')
+para('以山东临沂蒙阴县孟良崮战役纪念馆及山上纪念地为载体，面向青少年研学，将真实地图、原创讲解、三维地形、场景漫游与学习反馈串联为“看地图—听讲解—游场景—走路线—集印章—答问题”的闭环。红金视觉庄重克制，服务课前预习、现场参观与课后复习，实现线上可游、线下可感、虚实结合。')
+para('孟良崮战役发生于1947年5月13日至16日，华东野战军在陈毅、粟裕指挥下歼灭国民党军整编第74师等部，是粉碎敌军重点进攻山东的重要战役。作品优先采用政府、党史与档案资料；景区“华野战地指挥所”为标识点，不将其认定为战役总部。')
+figure_pair([('map.png', '图1　地图总览与三大模块门户', None), ('phone-map.png', '图2　手机端响应式导览', None)], 5.8)
 
 doc.add_page_break()
-heading('三、核心功能与参观流程')
-para('①八点图文：纪念馆、华野战地指挥所标识点、华野战壕、铁索桥、炮轰石、弹击石、张灵甫战死处标识点、山顶纪念碑。每点有原创游客文案、事实要点、实景照片和来源。②音频导览：8段约52—59秒点位讲解，另有开场、结语；同步字幕及暂停、停止、顺序导览与逐点视频入口。')
-pair('point.png', 'route.png', '图2—3　桌面截图局部：点位照片与讲解入口；乘车接驳和步行分段。', 7.3, details=True)
-para('③推荐路线：灰色细点线为山下至山上“乘车／景区交通”，不虚构用时；红色虚线为山上步行。山上约1.89公里、63—90分钟为端点距离×1.6等估算，非实测步道路网或逐向导航；以现场安全指引为准。④集章：授权定位后，点位300米内可打卡；非现场听完本点讲解获章。⑤问答：12题随机抽5题，达到60%获问答章；集齐8点章并通过问答，可生成PNG研学证书，非官方认证。')
-pair('stamps.png', 'quiz.png', '图4—5　桌面截图局部：研学集章与问答，进度仅保存在本机。', 7.3, details=True)
-para('支持问答中途恢复；清除浏览器数据会丢失进度，存储异常不阻止使用并给予提示。音视频需用户点击后播放；失败时提供重试、静态肖像／音频回退及讲解全文。')
+heading('二、功能设计与评分对应')
+table(['功能模块', '实现内容', '对应评分项'], [
+    ['地图与图文', '8个点位；实景照片、游客文案、史实要点及来源；馆区与山上点群入口分离。', '内容准确性\n地图交互'],
+    ['语音与字幕', '8段约52—59秒点位讲解及开场、结语；SVG小崮口型、播放控制与同步字幕。', '数字人讲解\n视听体验'],
+    ['路线与打卡', '接驳与步行分段；授权定位300米内打卡，远程听完讲解获章；进度本机保存。', '线上线下融合\n互动设计'],
+    ['问答与证书', '12题每轮抽5题，60%获问答章；集齐8点章并通过问答生成PNG证书。', '研学教育\n参与反馈'],
+    ['三维与视频', '3D地形沙盘、AI视频讲述、360°场景漫游；门户返回与焦点恢复。', '创新表达\n沉浸体验'],
+    ['适配与韧性', '桌面／手机适配，键盘与缩放支持；离线缓存、媒体回退及存储异常处理。', '技术实现\n易用性'],
+], [2.6, 10.5, 3.5])
+heading('三、游览流程与安全边界')
+para('访问公网链接，点击编号或“山下纪念馆”查看照片和讲解。路线灰色细点线为乘车／景区交通，红色虚线为山上步行；山上约1.89公里、63—90分钟为估算，非实测步道路网或逐向导航，接驳不虚构用时。以现场开放公告、标识与安全管制为准。')
+figure_pair([('point.png', '图3　点位实景照片与讲解入口', (840, 92, 1240, 552)), ('route.png', '图4　乘车接驳与步行分段', (40, 92, 480, 650))], 6.4)
+para('非现场可完整听完点位讲解集章。浏览器保存本机进度，不上传账号数据；清除数据会丢失记录。研学证书仅为学习体验凭证，不是官方认证。')
 
 doc.add_page_break()
-heading('四、三大沉浸模块与创新')
-para('3D地形沙盘：用SRTM衍生现代高程构建可旋转缩放地形，分阶段展示战役态势，辅助理解山地作战与协同。默认纵向增强3.6倍，可切换原比例；非1947年地表复原，部队、箭线和中间动画仅为教学示意，不是精确阵位、轨迹或兵力比例。')
-picture('terrain.png', '图6　从地图门户打开3D地形沙盘，结合阶段切换理解地形与部署。', 12.8)
-para('AI视频讲述：虚构成年讲解员提供10段视频与同步字幕，支持逐章、暂停／继续及音频回退。原SVG“小崮”音频导览保留；完成点位讲述可集章，含独立页面回退。360°全景场景：程序化三维模型参考实景照片，结合公开材质重现纪念碑周边，可自由转动视角及切换热点；并非360°实拍或测绘级复原。')
-pair('narrator.png', 'panorama.png', '图7—8　AI数字讲述；全景场景热点6“胜利之本”宽景。')
-para('创新：以地理位置、地形态势、场景观察和人物讲述互补组织内容，而非单一展示；以“讲解—集章—问答—证书”形成学习闭环；兼顾现场定位与远程学习；明确区分实景照片、现代高程和艺术示意，关于页集中提供可追溯来源及AI说明。')
+heading('四、沉浸模块与创新表达')
+doc.add_heading('从地理到历史：地形沙盘 × 场景漫游', 2)
+para('地形沙盘以SRTM衍生现代高程呈现山地，支持旋转缩放、战役阶段切换与原比例查看；默认纵向增强3.6倍。部队、箭线及动画为教学示意，不代表精确阵位、行军轨迹或兵力比例，也不是1947年地表复原。全景场景用程序化模型参考实景照片，结合公开材质呈现纪念碑周边，支持360°转动视角和7个热点；并非360°实拍或测绘级复原。')
+figure_pair([('terrain.png', '图5　3D地形沙盘与阶段态势', None), ('panorama.png', '图6　场景漫游“胜利之本”宽景', None)], 5)
+doc.add_heading('从聆听到参与：数字讲述 × 学习反馈', 2)
+para('AI视频讲述以虚构成年讲解员提供10段视频，支持字幕、章节切换、暂停继续及音频回退；保留原创SVG小崮音频导览。点位讲述完成可集章，再以问答巩固理解、证书记录体验。空间观察与人物叙事互补，现场与远程学习并行；实景、现代数据和艺术示意边界清楚，关于页集中保留出处及AI说明。')
+figure_pair([('narrator.png', '图7　AI视频讲述与同步字幕', None), ('certificate.png', '图8　研学证书示例（非官方认证）', None)], 5)
+para('截图来自公开Pages作品；证书使用隔离浏览器中的演示进度生成，不代表实地到访。门户支持返回与Escape，退出后恢复原入口焦点。')
 
 doc.add_page_break()
-heading('五、技术、适配与体验保障')
-para('HTML/CSS/原生JavaScript静态H5，GitHub Pages托管；Leaflet负责地图，Three.js负责三维。坐标参考OSM的WGS84数据，高德瓦片显示前转换为GCJ-02。相对路径适配Pages子目录，Service Worker缓存应用、图文、字幕、音频及约11.95MB视频，总预缓存约19.8MB；高德瓦片不缓存，外链仍需联网，不宣称地图完全离线。')
-para('Audio／Video同步字幕，WebAudio音量驱动SVG口型；localStorage保存进度；Canvas导出证书。界面采用系统中文字体，证书按需加载约19.6KB子集字体并提供回退。保留页面缩放、语义按钮、焦点循环／返回、Escape及字幕提示，支持减少动画。手机为响应式布局，尚未验证所有真机浏览器与读屏组合。')
-pair('phone-map.png', 'phone-point.png', '图9—10　375×667手机公网截图：地图与点位详情。', 3.2)
-heading('六、完整AI使用声明')
-para('本作品使用AI辅助资料整理、代码编写及功能调试。' + AI)
+heading('五、技术实现与体验保障')
+para('作品为HTML/CSS/原生JavaScript静态H5，GitHub Pages托管。Leaflet负责地图，Three.js负责三维；OSM坐标以WGS84记录，显示高德瓦片前转为GCJ-02。Audio／Video与字幕时间轴同步，WebAudio音量驱动SVG口型，localStorage保存进度，Canvas导出证书。')
+para('Service Worker缓存图文、音频、字幕和约11.95MB视频，总预缓存约19.8MB；高德瓦片不缓存，外链仍需联网。界面使用系统字体，证书按需加载约19.6KB字体子集。保留缩放、语义按钮、对话框焦点循环、Escape、字幕提示及减少动画；播放失败可重试／回退。尚未验证所有真机与读屏组合。')
+heading('六、AI使用声明')
+box = table(None, [['本作品使用AI辅助资料整理、代码编写及功能调试。' + AI]], [16.6])
+cell = box.cell(0, 0)
+element(cell._tc.get_or_add_tcPr(), 'shd', fill='F8F3E9')
 for key in ['narrator', 'terrain', 'panorama']:
-    text = ' '.join(modules[key]['notes'])
-    text = text.replace('本网站��分发模型权重', '本网站不分发模型权重')
-    para(modules[key]['title'] + '：' + text)
+    text = ' '.join(modules[key]['notes']).replace('本网站��分发模型权重', '本网站不分发模型权重')
+    if key == 'terrain':
+        text = ' '.join(modules[key]['notes'][:3])
+    p = cell.add_paragraph()
+    p.paragraph_format.first_line_indent = Pt(0)
+    p.paragraph_format.line_spacing = 1.3
+    p.add_run(modules[key]['title'] + '：').bold = True
+    p.add_run(text)
 
-appendix = doc.add_section(WD_SECTION.NEW_PAGE)
-columns = appendix._sectPr.find(qn('w:cols'))
-columns.set(qn('w:num'), '2')
-columns.set(qn('w:space'), '320')
-start = len(doc.paragraphs)
-heading('附录：来源、署名与许可')
-para('短标签为可点击原始链接；完整清单见作品“关于”页（在线作品同首页）。照片不用于反推史实；资料不替代馆方审定。')
-for i, key in enumerate(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S10', 'M0'], 1):
-    s = research['sources'][key]
-    link(para(''), f'[{i}] {s["publisher"]}：{s["title"]}', s['url'])
-doc.add_heading('点位实景照片', 2)
-para('8张作者均为Sprt98，CC BY-SA 4.0；本站等比缩小、JPEG压缩，容器可裁切；改作遵循相同许可。')
+doc.add_page_break()
+heading('七、来源、素材与许可附录')
+para('完整清单见在线作品“关于”页。以下短标签可点击原始链接；照片不用于反推史实，来源资料不替代馆方审定。')
+credits = table(['类别', '来源、作者与许可（短标签链接）'], [[c, ''] for c in ['史料', '点位照片', '模块素材', 'AI模型与工具', '地图与数据']], [2.3, 14.3], size=8, labels=True)
+groups = {name: credits.rows[i+1].cells[1] for i, name in enumerate(['史料', '点位照片', '模块素材', 'AI模型与工具', '地图与数据'])}
+
+
+def credit(category, label, url=None):
+    cell = groups[category]
+    p = cell.paragraphs[0]
+    if p.text or p._p.findall(qn('w:hyperlink')):
+        p.add_run('；').font.size = Pt(8)
+    compact(p, 8, 2, 1.15)
+    if url:
+        hyperlink(p, label, url)
+    else:
+        p.add_run(label).font.size = Pt(8)
+
+
+for key in ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S10']:
+    src = research['sources'][key]
+    credit('史料', src['publisher'] + '｜' + src['title'], src['url'])
+credit('点位照片', '8张均为Sprt98，CC BY-SA 4.0；等比缩小、JPEG压缩、容器裁切；改作遵循相同许可。')
 for point in guide['points']:
-    c = point['imageCredit']
-    link(para(''), f'{point["no"]}. {point["name"]}｜{c["author"]}｜{c["license"]}', c['source'])
-link(para(''), 'CC BY-SA 4.0 许可全文', 'https://creativecommons.org/licenses/by-sa/4.0/')
-for module in modules.values():
-    doc.add_heading(module['title'] + '：来源与素材', 2)
-    for s in module['sources']:
-        link(para(''), s['title'], s['url'])
-    for c in module['media']:
-        p = para('')
-        link(p, f'{c["title"]}｜{c["author"]}｜{c["license"]}', c['url'])
-        p.add_run('；' + c['changes'])
-    for url in sorted({c['licenseUrl'] for c in module['media']}):
-        link(para(''), '本模块素材许可／署名条款', url)
-para('地形：SRTM data courtesy of the U.S. Geological Survey；Terrain Tiles by Mapzen/Tilezen。WGS84/EGM96，重采样257×257，非历史地表。')
-heading('版权、证书与团队确认')
-para('讲解为原创表述，界面、SVG与交互含AI辅助；截图取自公网作品。高德保留署名与条款，OSM为ODbL，Leaflet为BSD-2-Clause，Three.js为MIT，Noto Sans CJK子集为SIL OFL。不主张第三方素材、史料、模型著作权；模型许可摘要不等于完整预训练资产授权审计。展示前须复核服务条款、授权和成员信息。')
-picture('certificate.png', '图11　研学证书示例；演示进度生成，非官方认证。', 6.5)
-para('团队负责人：【签名】　日期：【年／月／日】')
-for p in doc.paragraphs[start:]:
-    p.paragraph_format.line_spacing = 1
-    p.paragraph_format.space_after = Pt(2)
-    p.paragraph_format.keep_with_next = False
-    for run in p.runs:
-        run.font.size = Pt(7.5)
+    credit('点位照片', str(point['no']) + ' ' + point['name'], point['imageCredit']['source'])
+credit('点位照片', 'CC BY-SA 4.0许可', 'https://creativecommons.org/licenses/by-sa/4.0/')
+for c in modules['panorama']['media']:
+    credit('模块素材', c['title'] + '｜' + c['author'] + '｜' + c['license'] + '；' + c['changes'], c['url'])
+for url in sorted({c['licenseUrl'] for c in modules['panorama']['media']}):
+    credit('模块素材', '素材许可全文', url)
+for src in modules['narrator']['sources']:
+    credit('AI模型与工具', src['title'], src['url'])
+credit('AI模型与工具', '肖像由RealVisXL生成；SadTalker口型、GFPGAN修复，480×600 H.264/AAC；虚构人物，非历史影像。预训练组件遵守各自上游条款，许可摘要不等于完整授权审计。')
+for src in modules['terrain']['sources']:
+    credit('地图与数据', src['title'], src['url'])
+credit('地图与数据', 'SRTM data courtesy of USGS；Terrain Tiles by Mapzen/Tilezen。WGS84/EGM96，裁切重采样257×257；非历史地表。', modules['terrain']['media'][0]['url'])
+credit('地图与数据', 'OSM contributors（ODbL）', 'https://www.openstreetmap.org/copyright')
+credit('地图与数据', '高德地图：保留底图署名与使用条款；Leaflet BSD-2-Clause；Three.js MIT；Noto Sans CJK子集 SIL OFL。')
+para('讲解为原创表述，界面、SVG与代码含AI辅助；不主张第三方史料、地图、素材或模型著作权。团队应在提交展示前复核授权及服务条款。')
+para('团队负责人签名：____________　日期：____________')
 doc.save(OUT / FILENAME)
 print(OUT / FILENAME)
