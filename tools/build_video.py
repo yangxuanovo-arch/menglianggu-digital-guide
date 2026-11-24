@@ -102,6 +102,15 @@ def validate_audio(scene):
         assert previous_end <= scene['duration'], 'Audio exceeds scene'
 
 
+def wait_for_media(media, timeout_ms=8000):
+    media.evaluate('''(m, timeout)=>new Promise((resolve,reject)=>{
+        function cleanup(){clearTimeout(timer);m.removeEventListener('timeupdate',check)}
+        function check(){if(m.currentTime>.15&&!m.paused){cleanup();resolve()}}
+        const timer=setTimeout(()=>{cleanup();reject(new Error('Timed out waiting for sampled media playback'))},timeout);
+        m.addEventListener('timeupdate',check);check()
+    })''', timeout_ms)
+
+
 def record(browser, scene, work, base):
     sid = scene['id']
     size = {'width': 375, 'height': 667} if sid == 'phone' else {'width': 1920, 'height': 1080}
@@ -166,7 +175,7 @@ def record(browser, scene, work, base):
         locator.click()
         if media is None:
             media = page.evaluate_handle('window.__demoAudio[window.__demoAudio.length-1]')
-        media.evaluate('m=>new Promise(r=>{if(m.currentTime>.15&&!m.paused)r();else m.addEventListener("timeupdate",()=>{if(m.currentTime>.15&&!m.paused)r()})})')
+        wait_for_media(media)
         at = time.monotonic()-start
         offset = media.evaluate('m=>m.currentTime')
         assert at > scene['voice_duration'] + .5
