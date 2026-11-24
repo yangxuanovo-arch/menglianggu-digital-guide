@@ -1,6 +1,7 @@
 from io import BytesIO
 from pathlib import Path
 import runpy
+import stat
 import tarfile
 import tempfile
 import unittest
@@ -28,6 +29,10 @@ class PackageTest(unittest.TestCase):
         self.destination.write_bytes(self.previous)
         stream = BytesIO()
         with tarfile.open(fileobj=stream, mode='w') as archive:
+            directory = tarfile.TarInfo('tools/narrator')
+            directory.type = tarfile.DIRTYPE
+            directory.mode = 0o755
+            archive.addfile(directory)
             for name, mode in [('README.md', 0o644), ('tools/narrator/render.sh', 0o755),
                                ('tools/narrator/batch.sh', 0o755)]:
                 member = tarfile.TarInfo(name)
@@ -58,6 +63,17 @@ class PackageTest(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             self.build()
         self.assert_previous_preserved()
+
+    def test_archive_preserves_unix_modes(self):
+        self.build()
+        with zipfile.ZipFile(self.destination) as archive:
+            for name, mode in [('README.md', stat.S_IFREG | 0o644),
+                               ('tools/narrator/render.sh', stat.S_IFREG | 0o755),
+                               ('tools/narrator/batch.sh', stat.S_IFREG | 0o755),
+                               ('tools/narrator/', stat.S_IFDIR | 0o755)]:
+                entry = archive.getinfo(f'{TOP}/源码/{name}')
+                self.assertEqual(entry.create_system, 3)
+                self.assertEqual(entry.external_attr >> 16, mode)
 
     def test_invalid_archive_preserves_previous_package(self):
         self.archive = b''

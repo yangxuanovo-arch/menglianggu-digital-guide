@@ -1,6 +1,7 @@
 """Package the committed source tree, final submission and supplied contest rules."""
 from io import BytesIO
 from pathlib import Path
+import stat
 import subprocess
 import tarfile
 import tempfile
@@ -49,12 +50,18 @@ try:
         with tarfile.open(fileobj=BytesIO(archive)) as source:
             for member in source:
                 name = f'{TOP}/源码/{member.name}'
-                if member.isdir():
-                    out.writestr(name.rstrip('/') + '/', b'')
-                elif member.isfile():
-                    out.writestr(name, source.extractfile(member).read())
-                else:
+                if not (member.isdir() or member.isfile()):
                     raise ValueError('Unsupported archive entry: ' + member.name)
+                entry = zipfile.ZipInfo(name.rstrip('/') + '/' if member.isdir() else name)
+                entry.create_system = 3
+                kind = stat.S_IFDIR if member.isdir() else stat.S_IFREG
+                entry.external_attr = (kind | member.mode) << 16
+                entry.compress_type = zipfile.ZIP_DEFLATED
+                if member.isdir():
+                    entry.external_attr |= 0x10
+                    out.writestr(entry, b'')
+                else:
+                    out.writestr(entry, source.extractfile(member).read())
         for ext in ['docx', 'pdf']:
             out.write(WORK / 'deliverables' / (NAME + '.' + ext), f'{TOP}/提交材料/{NAME}.{ext}')
         for name in ['rules_student.pdf', '红色齐鲁赛项规则摘要.md']:
