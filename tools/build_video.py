@@ -282,6 +282,13 @@ def encode(scene, work):
     scene['encoded'] = str(output)
 
 
+def write_concat(scenes, path):
+    if not scenes:
+        raise ValueError('No encoded clips to concatenate')
+    paths = [str(Path(scene['encoded']).resolve()).replace("'", "'\\''") for scene in scenes]
+    path.write_text(''.join(f"file '{clip}'\n" for clip in paths))
+
+
 def finalize_video(concat, output):
     with tempfile.NamedTemporaryFile(dir=output.parent, prefix=f'.{output.stem}.', suffix='.mp4', delete=False) as temporary:
         pending = Path(temporary.name)
@@ -349,7 +356,7 @@ def main():
         encode(scene, work)
         manifest.write_text(json.dumps(data, ensure_ascii=False, indent=2))
     concat = work/'concat.txt'
-    concat.write_text(''.join(f"file '{s['encoded']}'\n" for s in data['scenes']))
+    write_concat(data['scenes'], concat)
     output = args.out_dir/(NAME+'.mp4')
     result = finalize_video(concat, output)
     video = next(s for s in result['streams'] if s['codec_type']=='video')

@@ -1,11 +1,13 @@
 from pathlib import Path
+import os
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
 
 from playwright.sync_api import Error, sync_playwright
 
-from build_video import SCENES, finalize_video, subtitles, validate_audio, wait_for_media
+from build_video import SCENES, finalize_video, subtitles, validate_audio, wait_for_media, write_concat
 
 
 class VideoTest(unittest.TestCase):
@@ -30,6 +32,23 @@ class VideoTest(unittest.TestCase):
             self.assertIn('地图连接历史。', text)
             self.assertIn('配音为AI合成', text)
             self.assertIn('Noto Sans CJK SC', text)
+
+
+class ConcatTest(unittest.TestCase):
+    def test_relative_clip_path_is_absolute_and_readable_by_ffmpeg(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            clip = root/"clip's.mp4"
+            subprocess.run(['ffmpeg', '-v', 'error', '-f', 'lavfi', '-i', 'color=s=16x16:d=0.04', '-c:v', 'libx264', str(clip)], check=True)
+            concat = root/'concat.txt'
+            write_concat([{'encoded': os.path.relpath(clip)}], concat)
+            self.assertIn(str(clip.resolve()).replace("'", "'\\''"), concat.read_text())
+            subprocess.run(['ffmpeg', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', str(concat), '-f', 'null', '-'], check=True)
+
+    def test_empty_clip_list_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(ValueError, 'No encoded clips'):
+                write_concat([], Path(directory)/'concat.txt')
 
 
 class FinalizeVideoTest(unittest.TestCase):
