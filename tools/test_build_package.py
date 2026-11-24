@@ -64,6 +64,13 @@ class PackageTest(unittest.TestCase):
             self.build()
         self.assert_previous_preserved()
 
+    def test_video_included_when_present(self):
+        (self.work / 'deliverables' / (NAME + '.mp4')).write_bytes(b'video fixture')
+        self.build()
+        with zipfile.ZipFile(self.destination) as archive:
+            self.assertEqual(archive.read(f'{TOP}/提交材料/{NAME}.mp4'), b'video fixture')
+            self.assertIn('已附1920×1080 MP4演示视频', archive.read(f'{TOP}/使用说明.txt').decode())
+
     def test_archive_preserves_unix_modes(self):
         self.build()
         with zipfile.ZipFile(self.destination) as archive:

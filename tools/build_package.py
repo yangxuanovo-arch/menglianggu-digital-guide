@@ -13,6 +13,8 @@ TOP = '崮上丰碑-完整项目包'
 NAME = '红色齐鲁-数字创意挑战赛-崮上丰碑——孟良崮战役纪念地数字导览-山东大学'
 sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
 archive = subprocess.check_output(['git', 'archive', '--format=tar', 'HEAD'], cwd=ROOT)
+video = WORK / 'deliverables' / (NAME + '.mp4')
+video_note = '已附1920×1080 MP4演示视频；答辩PPT继续暂停。' if video.exists() else '未附演示视频；答辩PPT继续暂停。'
 readme = f'''崮上丰碑——孟良崮战役纪念地数字导览（完整项目包）
 
 在线访问：https://menglianggu-guide.pages.dev/
@@ -40,7 +42,9 @@ readme = f'''崮上丰碑——孟良崮战役纪念地数字导览（完整项�
 缺省不显示联系方式。生成文件仅写入本机contest/deliverables，不放入源码。
 DOCX显式指定宋体／黑体；PDF已用宋体风格Noto Serif CJK与黑体风格
 Noto Sans CJK回退字体渲染并嵌入。Word未安装相应字体时应检查分页。
-视频与答辩PPT按所有者要求继续暂停，本包未新增或重建该两项交付。
+{video_note}
+视频重录：python3 tools/build_video.py --base-url https://menglianggu-guide.pages.dev/
+配音采用edge-tts zh-CN-XiaoxiaoNeural；片中含AI声明与烧录字幕。
 '''
 destination = WORK / (TOP + '.zip')
 with tempfile.NamedTemporaryFile(dir=WORK, prefix=f'.{TOP}.', suffix='.tmp', delete=False) as temporary:
@@ -64,6 +68,8 @@ try:
                     out.writestr(entry, source.extractfile(member).read())
         for ext in ['docx', 'pdf']:
             out.write(WORK / 'deliverables' / (NAME + '.' + ext), f'{TOP}/提交材料/{NAME}.{ext}')
+        if video.exists():
+            out.write(video, f'{TOP}/提交材料/{NAME}.mp4')
         for name in ['rules_student.pdf', '红色齐鲁赛项规则摘要.md']:
             out.write(WORK / name, f'{TOP}/赛事规则/{name}')
         out.writestr(f'{TOP}/使用说明.txt', readme)
