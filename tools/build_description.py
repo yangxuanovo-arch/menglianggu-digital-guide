@@ -12,7 +12,8 @@ from docx.shared import Cm, Pt, RGBColor
 from update_visitor_copy import AI
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / 'docs'
+OUT = Path.home() / 'contest' / 'deliverables'
+OUT.mkdir(parents=True, exist_ok=True)
 TITLE = '崮上丰碑——孟良崮战役纪念地数字导览'
 FILENAME = f'红色齐鲁-数字创意挑战赛-{TITLE}-山东大学.docx'
 URL = 'https://yangxuanovo-arch.github.io/menglianggu-digital-guide/'
@@ -26,6 +27,12 @@ def data(path, prefix):
 guide = data('web/content/data.js', 'window.GUIDE = ')
 modules = data('web/content/module-credits.js', 'window.GUIDE_MODULE_CREDITS = ')
 research = json.loads((ROOT / 'research/research.json').read_text())
+try:
+    private = json.loads((ROOT / 'tools/team_private.json').read_text())
+except FileNotFoundError:
+    private = {}
+captain = private.get('captain', {})
+contact = '｜'.join(captain[key] for key in ['phone', 'email'] if captain.get(key))
 doc = Document()
 s = doc.sections[0]
 s.page_width, s.page_height = Cm(21), Cm(29.7)
@@ -118,7 +125,7 @@ def figure_pair(items, height=4.5):
     row = t.rows[0]
     element(row._tr.get_or_add_trPr(), 'cantSplit')
     for cell, (name, caption, crop) in zip(row.cells, items):
-        image = Image.open(OUT / 'images' / name)
+        image = Image.open(ROOT / 'docs/images' / name)
         if crop:
             image = image.crop(crop)
         canvas = Image.new('RGB', (1200, round(1200 * height / 7.8)), 'white')
@@ -168,7 +175,7 @@ para('红色齐鲁·数字创意挑战赛｜学生组｜任务一 红色数字�
 table(None, [
     ['作品名称', TITLE],
     ['参赛单位', '山东大学 低空科学与工程学院'],
-    ['队长', '魏冰洋｜2024级计算机科学与技术专业研究生\n15026730009｜2279754571@qq.com'],
+    ['队长', '魏冰洋｜2024级计算机科学与技术专业研究生' + ('\n' + contact if contact else '')],
     ['团队成员', '隋源｜2025级电子科学与技术专业本科生\n迟庆宇｜2024级机器人工程专业（本科）'],
     ['指导教师', '于瑞璇｜助理研究员'],
     ['在线访问', URL],

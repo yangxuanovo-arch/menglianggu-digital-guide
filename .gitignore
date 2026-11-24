@@ -2,3 +2,6 @@
 *.webm
 __pycache__/
 !web/video/narrator/*.mp4
+tools/team_private.json
+docs/*.docx
+docs/*.pdf

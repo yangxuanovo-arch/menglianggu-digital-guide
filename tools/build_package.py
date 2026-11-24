@@ -21,7 +21,7 @@ readme = f'''崮上丰碑——孟良崮战役纪念地数字导览（完整项�
     web/      静态网站、音频、视频、三维沙盘、全景场景与公开署名
     tools/    说明书、离线缓存、截图与检查脚本
     research/ 史实、坐标与照片来源证据
-    docs/     最终说明书与无障碍说明
+    docs/     公共截图与无障碍说明（不含私人联系方式）
   提交材料/   山东大学版作品说明书DOCX与PDF（5页A4）
   赛事规则/   官方学生组规则PDF与摘要
 
@@ -34,6 +34,8 @@ readme = f'''崮上丰碑——孟良崮战役纪念地数字导览（完整项�
 不要直接双击index.html，离线缓存和视频模块需要HTTP环境。
 
 说明书生成：python3 tools/build_description.py（需python-docx、Pillow）。
+可选本机tools/team_private.json的captain对象提供phone、email；该文件不入库，
+缺省不显示联系方式。生成文件仅写入本机contest/deliverables，不放入源码。
 DOCX显式指定宋体／黑体；PDF已用宋体风格Noto Serif CJK与黑体风格
 Noto Sans CJK回退字体渲染并嵌入。Word未安装相应字体时应检查分页。
 视频与答辩PPT按所有者要求继续暂停，本包未新增或重建该两项交付。
@@ -50,7 +52,7 @@ with zipfile.ZipFile(destination, 'w', compression=zipfile.ZIP_DEFLATED, compres
             else:
                 raise ValueError('Unsupported archive entry: ' + member.name)
     for ext in ['docx', 'pdf']:
-        out.write(ROOT / 'docs' / (NAME + '.' + ext), f'{TOP}/提交材料/{NAME}.{ext}')
+        out.write(WORK / 'deliverables' / (NAME + '.' + ext), f'{TOP}/提交材料/{NAME}.{ext}')
     for name in ['rules_student.pdf', '红色齐鲁赛项规则摘要.md']:
         out.write(WORK / name, f'{TOP}/赛事规则/{name}')
     out.writestr(f'{TOP}/使用说明.txt', readme)
