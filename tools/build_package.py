@@ -3,6 +3,7 @@ from io import BytesIO
 from pathlib import Path
 import subprocess
 import tarfile
+import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -41,24 +42,30 @@ Noto Sans CJK回退字体渲染并嵌入。Word未安装相应字体时应检查
 视频与答辩PPT按所有者要求继续暂停，本包未新增或重建该两项交付。
 '''
 destination = WORK / (TOP + '.zip')
-with zipfile.ZipFile(destination, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as out:
-    with tarfile.open(fileobj=BytesIO(archive)) as source:
-        for member in source:
-            name = f'{TOP}/源码/{member.name}'
-            if member.isdir():
-                out.writestr(name.rstrip('/') + '/', b'')
-            elif member.isfile():
-                out.writestr(name, source.extractfile(member).read())
-            else:
-                raise ValueError('Unsupported archive entry: ' + member.name)
-    for ext in ['docx', 'pdf']:
-        out.write(WORK / 'deliverables' / (NAME + '.' + ext), f'{TOP}/提交材料/{NAME}.{ext}')
-    for name in ['rules_student.pdf', '红色齐鲁赛项规则摘要.md']:
-        out.write(WORK / name, f'{TOP}/赛事规则/{name}')
-    out.writestr(f'{TOP}/使用说明.txt', readme)
-with zipfile.ZipFile(destination) as result:
-    assert result.testzip() is None
-    assert all(name.startswith(TOP + '/') for name in result.namelist())
-    assert not any('【学校名称】' in name for name in result.namelist())
+with tempfile.NamedTemporaryFile(dir=WORK, prefix=f'.{TOP}.', suffix='.tmp', delete=False) as temporary:
+    pending = Path(temporary.name)
+try:
+    with zipfile.ZipFile(pending, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as out:
+        with tarfile.open(fileobj=BytesIO(archive)) as source:
+            for member in source:
+                name = f'{TOP}/源码/{member.name}'
+                if member.isdir():
+                    out.writestr(name.rstrip('/') + '/', b'')
+                elif member.isfile():
+                    out.writestr(name, source.extractfile(member).read())
+                else:
+                    raise ValueError('Unsupported archive entry: ' + member.name)
+        for ext in ['docx', 'pdf']:
+            out.write(WORK / 'deliverables' / (NAME + '.' + ext), f'{TOP}/提交材料/{NAME}.{ext}')
+        for name in ['rules_student.pdf', '红色齐鲁赛项规则摘要.md']:
+            out.write(WORK / name, f'{TOP}/赛事规则/{name}')
+        out.writestr(f'{TOP}/使用说明.txt', readme)
+    with zipfile.ZipFile(pending) as result:
+        assert result.testzip() is None
+        assert all(name.startswith(TOP + '/') for name in result.namelist())
+        assert not any('【学校名称】' in name for name in result.namelist())
+    pending.replace(destination)
+finally:
+    pending.unlink(missing_ok=True)
 print(f'PASS package: git archive {sha}; source/submission/rules/README; CRC verified')
 print(f'{destination}: {destination.stat().st_size} bytes')
