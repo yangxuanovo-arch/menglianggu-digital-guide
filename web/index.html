@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="崮上丰碑：孟良崮战役纪念地8点数字导览，实景图文、讲解字幕、研学问答与离线学习。">
+<link rel="preconnect" href="https://webrd01.is.autonavi.com">
+<meta name="theme-color" content="#351211">
+<title>崮上丰碑 · 孟良崮战役纪念地数字导览</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/epic.css">
+<link rel="stylesheet" href="css/atlas.css">
+<link rel="stylesheet" href="css/integration.css">
+</head>
+<body>
+<svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="icon-star" viewBox="0 0 24 24"><path d="m12 2 3 6.4 7 .9-5.1 4.9 1.3 7-6.2-3.4-6.2 3.4 1.3-7L2 9.3l7-.9Z"/></symbol>
+  <symbol id="icon-map" viewBox="0 0 24 24"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2Zm6-2v16m6-14v16"/></symbol>
+  <symbol id="icon-route" viewBox="0 0 24 24"><circle cx="5" cy="5" r="2"/><circle cx="19" cy="19" r="2"/><path d="M7 5h8a4 4 0 0 1 0 8H9a4 4 0 0 0 0 8h5m-2-3 3 3-3 3"/></symbol>
+  <symbol id="icon-stamp" viewBox="0 0 24 24"><circle cx="12" cy="10" r="7"/><path d="m8 16-1 6 5-3 5 3-1-6m-4-10 1.2 2.5 2.8.4-2 2 .5 2.7-2.5-1.3-2.5 1.3.5-2.7-2-2 2.8-.4Z"/></symbol>
+  <symbol id="icon-quiz" viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v16H5V5a2 2 0 0 1 2-2Zm2 6a3 3 0 1 1 4 2.8V14m-1 3v.1"/></symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v7m0-10v.1"/></symbol>
+  <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2"/></symbol>
+  <symbol id="icon-terrain" viewBox="0 0 48 48"><path d="m4 31 20 12 20-12M4 24l20 12 20-12M4 17 24 5l20 12-20 12Z"/><path d="m12 18 8-5 5 6 5-3 7 3M24 29v7"/></symbol>
+  <symbol id="icon-narrator" viewBox="0 0 48 48"><rect x="5" y="7" width="38" height="34" rx="2"/><path d="M10 13h5m-5 0v5m28-5h-5m5 0v5M14 34q2-8 10-8t10 8M18 19a6 6 0 1 0 12 0 6 6 0 1 0-12 0Z"/></symbol>
+  <symbol id="icon-panorama" viewBox="0 0 48 48"><path d="M4 12q20 9 40 0v24q-20-9-40 0Zm0 17 10-9 10 9 8-8 12 8M18 8a16 16 0 0 1 15 0m-3-4 4 4-5 1M30 40a16 16 0 0 1-15 0m3 4-4-4 5-1"/></symbol>
+  <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></symbol>
+</svg>
+<header id="topbar">
+  <div class="brand"><span class="star"><svg class="icon" aria-hidden="true"><use href="#icon-star"/></svg></span><div><h1>崮上丰碑</h1><p>孟良崮战役纪念地 · 数字导览</p></div></div>
+  <div class="top-actions">
+    <button id="btnLocate" title="区位"><svg class="icon" aria-hidden="true"><use href="#icon-pin"/></svg><span>区位</span></button>
+    <button id="btnHelp" title="使用说明" aria-label="使用说明"><svg class="icon" aria-hidden="true"><use href="#icon-info"/></svg></button>
+  </div>
+</header>
+
+<section class="experience-hub" aria-label="沉浸体验入口">
+  <div class="hub-heading"><span>孟良崮 · 数字纪念空间</span><strong>从山河，读懂历史</strong><small>一张地图，连接一段不应忘却的记忆</small></div>
+  <nav class="module-launchers" aria-label="探索三种沉浸体验"></nav>
+</section>
+<div id="map" aria-label="孟良崮战役纪念地导览地图"></div>
+<div class="map-frame" aria-hidden="true"><span>导览地图 <i>·</i> 孟良崮战役纪念地</span></div>
+
+<!-- point detail sheet -->
+<section id="sheet" class="sheet hidden" aria-live="polite">
+  <div class="sheet-handle"></div>
+  <button class="sheet-close" id="sheetClose" aria-label="关闭点位详情">×</button>
+  <div id="sheetBody"></div>
+</section>
+
+<!-- panels -->
+<section id="panel" class="panel hidden">
+  <div class="panel-head"><h2 id="panelTitle"></h2><button class="panel-close" id="panelClose" aria-label="关闭面板">×</button></div>
+  <div id="panelBody" class="panel-body"></div>
+</section>
+
+<!-- digital human -->
+<div id="guide" class="guide hidden">
+  <div id="bubble" class="bubble" aria-live="polite" aria-atomic="true"></div>
+  <div class="avatar-wrap">
+    <svg id="avatar" viewBox="0 0 200 240" aria-label="数字人讲解员 小崮">
+      <defs>
+        <linearGradient id="jacket" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4c4840"/><stop offset=".45" stop-color="#292c2b"/><stop offset="1" stop-color="#151e20"/></linearGradient>
+        <linearGradient id="skin" x1="0" y1="0" x2="1" y2=".35"><stop stop-color="#ac8065"/><stop offset=".32" stop-color="#e1b798"/><stop offset=".61" stop-color="#e7bea0"/><stop offset="1" stop-color="#ad7e62"/></linearGradient>
+        <linearGradient id="neck" x1="0" y1="0" x2=".6" y2="1"><stop stop-color="#966e55"/><stop offset="1" stop-color="#dab091"/></linearGradient>
+        <radialGradient id="portrait-bg"><stop stop-color="#94784f"/><stop offset="1" stop-color="#3f352b"/></radialGradient>
+        <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3d3731"/><stop offset=".5" stop-color="#242522"/><stop offset="1" stop-color="#161b1a"/></linearGradient>
+        <linearGradient id="face-shadow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7b4e3b" stop-opacity="0"/><stop offset="1" stop-color="#7b4e3b" stop-opacity=".4"/></linearGradient>
+      </defs>
+      <!-- Original adult museum-docent portrait; not a historical likeness. -->
+      <path d="M10 0h180v240H10z" fill="url(#portrait-bg)"/>
+      <path d="M14 5h172v230H14z" stroke="#d5b47a" stroke-opacity=".4"/>
+      <path d="M13 240 23 185Q27 173 66 160l34 11 34-11q39 13 43 25l10 55" fill="url(#jacket)"/>
+      <path d="M81 135h38l3 30-22 19-22-19Z" fill="url(#neck)"/>
+      <path d="m78 157 22 18 22-18 12 15-21 57H88l-23-57Z" fill="#dcd7c8"/>
+      <path d="m96 177-5 12 6 9-7 42h20l-7-42 6-9-5-12Z" fill="#77342e"/>
+      <path d="m78 157 22 18-12 22-18-29m52-11-22 18 12 22 18-29" fill="#f0e9d8" stroke="#b6ac98" stroke-width=".7"/>
+      <path d="m65 161-12 38 17 6-9 12 21 23h11l-19-73m61-6 12 38-17 6 9 12-21 23h-11l19-73" fill="#343733" stroke="#6d6a5a" stroke-width=".7"/>
+      <path d="m37 199-4 41m130-41 4 41m-27-20h19" stroke="#95907a" stroke-opacity=".3"/>
+      <ellipse cx="63" cy="98" rx="7" ry="14" fill="#b88b6d"/><ellipse cx="137" cy="98" rx="7" ry="14" fill="#b88b6d"/>
+      <path d="M65 71Q66 38 101 37q34 1 34 34l-2 43q-3 22-18 32-15 10-30 0-16-11-19-32Z" fill="url(#skin)"/>
+      <path d="M70 95q-4 24 9 39l9 7q-11-3-19-18Zm61-9-5 40-12 17q15-7 18-29Z" fill="url(#face-shadow)"/>
+      <path d="M64 89q-5-18 0-34 2-23 23-27 26-10 44 11 13 3 9 31l-5 24-4-32q-19 0-29-15-12 17-31 17Z" fill="url(#hair)"/>
+      <g stroke="#85816b" stroke-opacity=".22" stroke-width=".7"><path d="M68 53q10-20 32-20m-30 25q18-11 30-21m-25 22 25-19m11-3q10 13 22 17m-19-12 20 17"/></g>
+      <path d="m72 85 8-3 10 2m20 0 10-2 8 3" stroke="#4d3d32" stroke-width="2" stroke-linecap="round"/>
+      <path d="M72 92q8-5 17 0m22 0q9-5 17 0" stroke="#946b54" stroke-width=".8"/>
+      <g id="eyes">
+        <path d="M73 94q8-5 16 0-8 5-16 0m38 0q8-5 16 0-8 5-16 0" fill="#e6d5ba"/>
+        <ellipse cx="81" cy="94" rx="2.5" ry="2.6" fill="#302e28"/><ellipse cx="119" cy="94" rx="2.5" ry="2.6" fill="#302e28"/>
+        <path d="M73 94q8-5 16 0m22 0q8-5 16 0" stroke="#4f3e31" stroke-width="1.2"/>
+        <circle cx="82" cy="93" r=".6" fill="#eee1c7"/><circle cx="120" cy="93" r=".6" fill="#eee1c7"/>
+      </g>
+      <path d="m98 95-3 17q5 5 10 0l-4-15" fill="#bf9070" fill-opacity=".65"/>
+      <path d="M95 113q5 3 10 0m-13-1 1 3m14-3-1 3" stroke="#9a6d53" stroke-width=".8" stroke-linecap="round"/>
+      <path d="m86 114-3 10m31-10 3 10m-23 13q6 2 12 0" stroke="#b38669" stroke-width=".7"/>
+      <path d="M91 125q4-4 9-2 5-2 9 2-9 6-18 0" fill="#b77d68"/>
+      <ellipse id="mouth" cx="100" cy="126" rx="9" ry="1.5" fill="#644032"/>
+      <path id="lip" d="M91 125q9 3 18 0" stroke="#855340" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div class="guide-name">讲解员 小崮</div>
+  </div>
+  <div class="guide-ctrl">
+    <span class="voice-label">AI合成语音</span>
+    <button id="gPause">暂停</button><button id="gStop">关闭</button>
+  </div>
+</div>
+
+<nav id="tabbar">
+  <button data-tab="map" class="active"><svg class="icon" aria-hidden="true"><use href="#icon-map"/></svg>导览地图</button>
+  <button data-tab="route"><svg class="icon" aria-hidden="true"><use href="#icon-route"/></svg>推荐路线</button>
+  <button data-tab="stamps"><svg class="icon" aria-hidden="true"><use href="#icon-stamp"/></svg>研学打卡</button>
+  <button data-tab="quiz"><svg class="icon" aria-hidden="true"><use href="#icon-quiz"/></svg>知识问答</button>
+  <button data-tab="about"><svg class="icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</button>
+</nav>
+
+<!-- onboarding -->
+<div id="intro" class="intro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+  <div class="intro-card atlas-opening">
+    <div class="intro-visual" aria-hidden="true">
+    <div class="intro-monument" aria-hidden="true"></div>
+    <div class="intro-light" aria-hidden="true"></div>
+    <div class="intro-fog" aria-hidden="true"></div>
+    <div class="intro-year" aria-hidden="true">1947</div>
+    </div>
+    <header class="opening-masthead"><span><svg class="icon" aria-hidden="true"><use href="#icon-star"/></svg>孟良崮战役纪念地</span><small>数字纪念空间 <i>／</i> DIGITAL MEMORIAL</small></header>
+    <div class="opening-editorial"><p class="opening-eyebrow">山 河 为 证 <span></span> 精 神 长 存</p><h2 id="introTitle">崮上丰碑</h2><p class="opening-statement">重走来路，读懂山河。</p><p id="introSub" class="opening-location"></p></div>
+    <div class="opening-side-note" aria-hidden="true"><span>MEMORY</span><b>1947</b><span>孟良崮</span></div>
+    <nav class="opening-experiences" aria-label="选择沉浸体验">
+      <button class="experience-portal" data-module="terrain" type="button"><span class="portal-number">01 <i>／</i> TERRAIN</span><svg class="portal-art icon" aria-hidden="true"><use href="#icon-terrain"/></svg><strong>3D 地形沙盘</strong><span class="portal-desc">俯瞰山势 · 理解战场</span><span class="portal-state">进入体验</span><svg class="portal-arrow icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+      <button class="experience-portal" data-module="narrator" type="button"><span class="portal-number">02 <i>／</i> NARRATIVE</span><svg class="portal-art icon" aria-hidden="true"><use href="#icon-narrator"/></svg><strong>AI 数字讲述</strong><span class="portal-desc">让历史有声有像</span><span class="portal-state">进入体验</span><svg class="portal-arrow icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+      <button class="experience-portal" data-module="panorama" type="button"><span class="portal-number">03 <i>／</i> PANORAMA</span><svg class="portal-art icon" aria-hidden="true"><use href="#icon-panorama"/></svg><strong>3D 场景漫游</strong><span class="portal-desc">纪念碑场景 · 示意重现</span><span class="portal-state">进入体验</span><svg class="portal-arrow icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+    </nav>
+    <div class="opening-actions"><button id="introStart" class="btn-primary">开始体验 <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button><button id="introTour" class="btn-ghost">跟随小崮全程导览</button><span class="opening-index">数字导览 <i>／</i> 研学集章 <i>／</i> 知识问答</span></div>
+    <ol class="opening-howto">
+      <li><span>01</span><div><b>点地图上的红色点位</b><small>查看图文介绍</small></div></li>
+      <li><span>02</span><div><b>点“听讲解”</b><small>数字人小崮为你讲述</small></div></li>
+      <li><span>03</span><div><b>听完即可打卡集章</b><small>再挑战知识问答</small></div></li>
+    </ol>
+  </div>
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="content/data.js"></script>
+<script src="content/module-credits.js"></script>
+<script src="js/app.js"></script>
+<script src="js/shell.js"></script>
+<script src="terrain/adapter.js" defer></script>
+<script src="scene/panorama-module.js" defer></script>
+<script src="narrator/adapter.js" defer></script>
+</body>
+</html>

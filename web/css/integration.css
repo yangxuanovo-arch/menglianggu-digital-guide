@@ -1,0 +1,5 @@
+.poi.done{background:#806014}
+.stamp{color:#67513d}
+.brand p,.leg-label,.src,.meta,.q .exp,.facts,.cover,.guide-name,.voice-label,.sheet .meta,#tabbar button,.leg small,.poi-label,.city,.intro-sub,.legend,.bubble{font-size:.875rem}
+.network-status{top:calc(var(--top) + 4px)}
+.module-credits{overflow-wrap:break-word;word-wrap:break-word}
